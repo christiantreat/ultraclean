@@ -376,23 +376,43 @@ body.light .canvas-area { background: #222; }
 <!-- STEP 6: Export -->
 <section class="step-view" id="step-export">
   <div class="export-card">
-    <h3 id="exportTitle">Export Clean Clip</h3>
-    <p id="exportFilename" style="font-family:'JetBrains Mono',monospace;font-size:12px;"></p>
-    <div class="export-options">
-      <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
-      <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
-      <div class="export-opt" data-res="720" onclick="setExportRes(this)">720p</div>
-    </div>
-    <button class="btn btn-primary" id="exportBtn" onclick="doExport()" style="font-size:15px;padding:14px 36px;">
-      ⬇ Download Clean MP4
-    </button>
-    <div class="progress-bar hidden" id="exportProgress"><div class="fill" id="exportFill"></div></div>
-    <div class="progress-text hidden" id="exportProgressText">Rendering frames…</div>
-    <div id="exportErrorBox" class="hidden" style="margin-top:12px;background:var(--red-dim);border:1px solid rgba(239,100,97,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--red);text-align:left;"></div>
 
-    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-      <button class="btn btn-secondary" onclick="resetApp()">↻ Start over</button>
+    <!-- ── Ready state ── -->
+    <div id="exportReadyState">
+      <h3 id="exportTitle">Export Clean Clip</h3>
+      <p id="exportFilename" style="font-family:'JetBrains Mono',monospace;font-size:12px;"></p>
+      <div class="export-options">
+        <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
+        <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
+        <div class="export-opt" data-res="720" onclick="setExportRes(this)">720p</div>
+      </div>
+      <button class="btn btn-primary" id="exportBtn" onclick="doExport()" style="font-size:15px;padding:14px 36px;">
+        ⬇ Download Clean MP4
+      </button>
     </div>
+
+    <!-- ── Processing state ── -->
+    <div id="exportProcessingState" class="hidden">
+      <h3 style="margin-bottom:8px;">Exporting…</h3>
+      <p id="exportProcessingDesc" style="color:var(--text-dim);font-size:14px;margin-bottom:28px;"></p>
+      <div class="progress-bar" id="exportProgress" style="margin-top:0;"><div class="fill" id="exportFill"></div></div>
+      <div class="progress-text" id="exportProgressText" style="margin-top:12px;">Preparing…</div>
+    </div>
+
+    <!-- ── Done state ── -->
+    <div id="exportDoneState" class="hidden">
+      <div style="font-size:52px;margin-bottom:12px;">✓</div>
+      <h3 id="exportDoneTitle" style="margin-bottom:8px;">Export complete</h3>
+      <p id="exportDoneDesc" style="color:var(--text-dim);font-size:14px;margin-bottom:8px;"></p>
+      <div id="exportErrorBox" class="hidden" style="margin-bottom:20px;background:var(--red-dim);border:1px solid rgba(239,100,97,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--red);text-align:left;"></div>
+      <button class="btn btn-primary" onclick="resetApp()" style="font-size:15px;padding:14px 36px;">↻ Export a new batch</button>
+    </div>
+
+    <!-- ── Back button (ready state only) ── -->
+    <div id="exportBackRow" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+      <button class="btn btn-secondary" onclick="goStep('review')">← Back to Review</button>
+    </div>
+
   </div>
 </section>
 ```
@@ -1007,6 +1027,14 @@ function toggleCheck(id) {
 // STEP 6: EXPORT
 // ═══════════════════════════════════════════
 function initExportView() {
+  // Reset to ready state
+  document.getElementById('exportReadyState').classList.remove('hidden');
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.remove('hidden');
+  document.getElementById('exportFill').style.width = '0%';
+  document.getElementById('exportProgressText').textContent = 'Preparing…';
+
   const base = document.getElementById('renameInput').value || 'ultrasound_clip';
   const n = state.files.length;
   const mp4Ok = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') || MediaRecorder.isTypeSupported('video/mp4');
@@ -1016,10 +1044,6 @@ function initExportView() {
     ? `${base}_001_clean.${ext} … ${base}_${String(n).padStart(3,'0')}_clean.${ext}`
     : `${base}_clean.${ext}`;
   document.getElementById('exportBtn').textContent = n > 1 ? `⬇ Download All ${n} Clips` : '⬇ Download Clean MP4';
-  document.getElementById('exportProgress').classList.add('hidden');
-  document.getElementById('exportProgressText').classList.add('hidden');
-  document.getElementById('exportErrorBox').classList.add('hidden');
-  document.getElementById('exportFill').style.width = '0%';
 }
 
 function setExportRes(el) {
@@ -1040,22 +1064,22 @@ function seekTo(video, time) {
 }
 
 async function doExport() {
-  const progressBar = document.getElementById('exportProgress');
   const progressFill = document.getElementById('exportFill');
   const progressText = document.getElementById('exportProgressText');
-  const exportBtn = document.getElementById('exportBtn');
-  const errorBox = document.getElementById('exportErrorBox');
 
-  progressBar.classList.remove('hidden');
-  progressText.classList.remove('hidden');
-  errorBox.classList.add('hidden');
-  exportBtn.disabled = true;
-  exportBtn.textContent = 'Rendering…';
+  // Switch to processing state — hides ready state and back button
+  document.getElementById('exportReadyState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportProcessingState').classList.remove('hidden');
 
   const base = document.getElementById('renameInput').value || 'ultrasound_clip';
   const totalFiles = state.files.length;
-  const errors = [];
+  document.getElementById('exportProcessingDesc').textContent = totalFiles > 1
+    ? `Rendering and downloading ${totalFiles} clips. This may take a while — please keep this tab open.`
+    : 'Rendering and downloading your clip. Please keep this tab open.';
 
+  const errors = [];
   for (let fileIdx = 0; fileIdx < totalFiles; fileIdx++) {
     progressText.textContent = `Loading clip ${fileIdx + 1} / ${totalFiles}…`;
     try {
@@ -1068,17 +1092,24 @@ async function doExport() {
   }
 
   progressFill.style.width = '100%';
+
+  // Switch to done state
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.remove('hidden');
+  const errorBox = document.getElementById('exportErrorBox');
   if (errors.length) {
-    progressText.textContent = `${totalFiles - errors.length} / ${totalFiles} clips exported (${errors.length} failed — see below)`;
+    document.getElementById('exportDoneTitle').textContent =
+      errors.length === totalFiles ? 'Export failed' : `${totalFiles - errors.length} / ${totalFiles} clips exported`;
+    document.getElementById('exportDoneDesc').textContent = `${errors.length} clip(s) could not be exported.`;
     errorBox.innerHTML = errors.map(e => `<div>⚠ ${e}</div>`).join('');
     errorBox.classList.remove('hidden');
-    exportBtn.textContent = 'Retry';
   } else {
-    progressText.textContent = totalFiles > 1 ? `All ${totalFiles} clips exported` : 'Export complete';
-    exportBtn.textContent = totalFiles > 1 ? `✓ All ${totalFiles} downloaded` : '✓ Downloaded';
+    document.getElementById('exportDoneTitle').textContent =
+      totalFiles > 1 ? `All ${totalFiles} clips exported` : 'Export complete';
+    document.getElementById('exportDoneDesc').textContent =
+      totalFiles > 1 ? 'All files have been downloaded to your device.' : 'Your file has been downloaded.';
+    errorBox.classList.add('hidden');
   }
-  exportBtn.disabled = false;
-  exportBtn.onclick = doExport;
 }
 
 async function renderAndDownload(fileIdx, base, totalFiles, progressFill, progressText) {
@@ -1087,8 +1118,13 @@ async function renderAndDownload(fileIdx, base, totalFiles, progressFill, progre
   const crop = settings.crop;
   const covers = settings.covers || [];
 
-  // Load the file into the video element
+  // Load the file into the video element.
+  // IMPORTANT: clear any handlers left by loadCurrentFile() (oncanplay in particular)
+  // otherwise the old callback fires again here and navigates back to the crop step.
   const video = document.getElementById('videoEl');
+  video.oncanplay = null;
+  video.onloadedmetadata = null;
+  video.onerror = null;
   if (video._exportURL) { URL.revokeObjectURL(video._exportURL); video._exportURL = null; }
   await new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -1195,11 +1231,16 @@ function resetApp() {
   state.isPlaying = false;
   document.getElementById('fileList').classList.add('hidden');
   document.getElementById('importBtnRow').style.display = 'none';
-  document.getElementById('exportProgress').classList.add('hidden');
-  document.getElementById('exportProgressText').classList.add('hidden');
-  document.getElementById('exportBtn').textContent = '⬇ Download Clean MP4';
-  document.getElementById('exportBtn').disabled = false;
-  document.getElementById('exportBtn').onclick = doExport;
+  // Reset export card to ready state
+  document.getElementById('exportReadyState').classList.remove('hidden');
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.remove('hidden');
+  document.getElementById('exportFill').style.width = '0%';
+  const video = document.getElementById('videoEl');
+  video.oncanplay = null;
+  video.onloadedmetadata = null;
+  video.onerror = null;
   goStep('import');
 }
 
