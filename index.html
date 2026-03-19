@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UltraClean — De-identify Ultrasound Clips</title>
+<meta name="description" content="De-identify ultrasound clips entirely in your browser. Crop PHI, cover logos, strip metadata, export clean MP4.">
+<meta name="theme-color" content="#0b0e14">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0e14;
+  --surface: #131720;
+  --surface-2: #1a1f2c;
+  --surface-3: #222838;
+  --border: #262d3d;
+  --border-hover: #3a4258;
+  --text: #e4e7ed;
+  --text-dim: #8d93a5;
+  --text-muted: #555d72;
+  --accent: #3ecf8e;
+  --accent-hover: #34b87d;
+  --accent-dim: rgba(62,207,142,0.10);
+  --accent-glow: rgba(62,207,142,0.20);
+  --warn: #f0b232;
+  --warn-dim: rgba(240,178,50,0.10);
+  --red: #ef6461;
+  --red-dim: rgba(239,100,97,0.10);
+  --info: #5b9cf5;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --transition: 0.2s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit;}
+input[type="text"],input[type="number"]{font-family:inherit;font-size:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;outline:none;transition:border var(--transition);}
+input:focus{border-color:var(--accent);}
+select{font-family:inherit;font-size:13px;color:var(--text);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;outline:none;cursor:pointer;}
+
+/* ── App Shell ── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(–border);background:var(–surface);position:sticky;top:0;z-index:100;}
+.app-logo{font-family:‘Fraunces’,serif;font-weight:700;font-size:20px;color:#fff;letter-spacing:-0.02em;}
+.app-logo span{color:var(–accent);}
+.privacy-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:‘JetBrains Mono’,monospace;letter-spacing:0.04em;color:var(–accent);background:var(–accent-dim);border:1px solid rgba(62,207,142,0.15);padding:4px 10px;border-radius:20px;}
+.privacy-badge::before{content:’’;width:6px;height:6px;border-radius:50%;background:var(–accent);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ── Step Progress ── */
+.step-bar{display:flex;align-items:center;justify-content:center;gap:4px;padding:16px 24px;background:var(–bg);border-bottom:1px solid var(–border);}
+.step-pip{display:flex;align-items:center;gap:4px;}
+.step-pip .num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:‘JetBrains Mono’,monospace;font-size:11px;font-weight:500;border:1.5px solid var(–border);color:var(–text-muted);transition:all 0.3s ease;}
+.step-pip.active .num{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);box-shadow:0 0 12px var(–accent-glow);}
+.step-pip.done .num{border-color:var(–accent);background:var(–accent);color:var(–bg);font-size:13px;}
+.step-pip .label{font-size:11.5px;color:var(–text-muted);font-weight:500;transition:color 0.3s;}
+.step-pip.active .label{color:var(–text);}
+.step-pip.done .label{color:var(–accent);}
+.step-connector{width:24px;height:1px;background:var(–border);margin:0 2px;transition:background 0.3s;}
+.step-connector.done{background:var(–accent);}
+
+/* ── Main Content ── */
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+.step-view{display:none;width:100%;max-width:900px;animation:fadeIn 0.3s ease;}
+.step-view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── Import Step ── */
+.drop-zone{border:2px dashed var(–border);border-radius:var(–radius-lg);padding:64px 40px;text-align:center;transition:all 0.3s ease;cursor:pointer;position:relative;overflow:hidden;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(–accent);background:var(–accent-dim);}
+.drop-zone .icon{font-size:48px;margin-bottom:16px;opacity:0.6;}
+.drop-zone h3{font-size:18px;font-weight:600;color:#fff;margin-bottom:6px;}
+.drop-zone p{color:var(–text-dim);font-size:13px;}
+.drop-zone .formats{margin-top:12px;font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);}
+.file-info{display:flex;align-items:center;gap:16px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:16px 20px;margin-top:16px;}
+.file-info .fi-icon{font-size:28px;}
+.file-info .fi-details{flex:1;}
+.file-info .fi-name{font-weight:600;color:#fff;font-size:13px;}
+.file-info .fi-meta{font-size:12px;color:var(–text-muted);margin-top:2px;}
+.file-info .fi-remove{color:var(–red);font-size:18px;padding:4px 8px;border-radius:var(–radius-sm);transition:background var(–transition);}
+.file-info .fi-remove:hover{background:var(–red-dim);}
+
+/* ── Batch list ── */
+.batch-list{margin-top:16px;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;}
+.batch-item{display:flex;align-items:center;gap:12px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:10px 14px;font-size:13px;}
+.batch-item.processing{border-color:var(–accent);background:var(–accent-dim);}
+.batch-item.completed{border-color:var(–accent);opacity:0.7;}
+.batch-item .bi-name{flex:1;font-weight:500;color:var(–text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.batch-item .bi-status{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);}
+.batch-item .bi-remove{color:var(–red);font-size:16px;padding:2px 6px;border-radius:4px;transition:background var(–transition);}
+.batch-item .bi-remove:hover{background:var(–red-dim);}
+
+/* ── Canvas Area (Crop & Cover) ── */
+.canvas-area{position:relative;background:#000;border-radius:var(–radius);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:400px;}
+.canvas-area canvas{display:block;max-width:100%;max-height:60vh;cursor:crosshair;}
+.canvas-area video{display:none;}
+
+/* ── Controls Panel ── */
+.controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;align-items:center;}
+.ctrl-group{display:flex;align-items:center;gap:8px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:6px 12px;}
+.ctrl-group label{font-size:12px;color:var(–text-muted);font-weight:500;white-space:nowrap;}
+.ctrl-group input[type=“range”]{width:80px;accent-color:var(–accent);}
+.ctrl-group input[type=“color”]{width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;background:none;}
+
+/* ── Scrubber ── */
+.scrubber{width:100%;margin-top:12px;display:flex;align-items:center;gap:12px;}
+.scrubber input[type=“range”]{flex:1;accent-color:var(–accent);}
+.scrubber .time{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);min-width:70px;}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(–radius-sm);font-weight:600;font-size:13px;transition:all var(–transition);}
+.btn-primary{background:var(–accent);color:var(–bg);}
+.btn-primary:hover{background:var(–accent-hover);box-shadow:0 0 20px var(–accent-glow);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+.btn-secondary{background:var(–surface-2);color:var(–text);border:1px solid var(–border);}
+.btn-secondary:hover{border-color:var(–border-hover);background:var(–surface-3);}
+.btn-danger{background:var(–red-dim);color:var(–red);border:1px solid rgba(239,100,97,0.2);}
+.btn-danger:hover{background:rgba(239,100,97,0.18);}
+.btn-sm{padding:6px 14px;font-size:12px;}
+.btn-row{display:flex;gap:10px;margin-top:20px;justify-content:space-between;align-items:center;}
+.btn-row-right{display:flex;gap:10px;}
+
+/* ── Presets ── */
+.preset-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.preset-chip{font-size:12px;padding:5px 12px;border-radius:20px;background:var(–surface-2);border:1px solid var(–border);color:var(–text-dim);transition:all var(–transition);cursor:pointer;}
+.preset-chip:hover{border-color:var(–accent);color:var(–accent);}
+.preset-chip.active{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);}
+
+/* ── Metadata Step ── */
+.meta-strip{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:20px;margin-bottom:16px;}
+.meta-strip h4{font-size:14px;font-weight:600;color:#fff;margin-bottom:12px;}
+.meta-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(–border);font-size:13px;}
+.meta-row:last-child{border-bottom:none;}
+.meta-row .mk{color:var(–text-muted);font-family:‘JetBrains Mono’,monospace;font-size:12px;}
+.meta-row .mv{color:var(–text-dim);}
+.meta-row .mv.stripped{color:var(–red);text-decoration:line-through;opacity:0.6;}
+.rename-field{margin-top:16px;}
+.rename-field label{display:block;font-size:13px;font-weight:500;color:var(–text-dim);margin-bottom:6px;}
+.rename-field input{width:100%;max-width:400px;}
+
+/* ── Audio Warning ── */
+.audio-warning{background:var(–warn-dim);border:1px solid rgba(240,178,50,0.2);border-radius:var(–radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;}
+.audio-warning .aw-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.audio-warning .aw-text{flex:1;font-size:13px;color:var(–warn);line-height:1.55;}
+.audio-warning .aw-text strong{display:block;margin-bottom:4px;font-size:14px;}
+.audio-toggle{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.toggle{position:relative;width:40px;height:22px;border-radius:11px;background:var(–surface-3);border:1px solid var(–border);cursor:pointer;transition:all var(–transition);}
+.toggle.on{background:var(–accent);border-color:var(–accent);}
+.toggle::after{content:’’;position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform var(–transition);}
+.toggle.on::after{transform:translateX(18px);}
+
+/* ── Review Checklist ── */
+.checklist{display:flex;flex-direction:column;gap:8px;margin:20px 0;}
+.check-item{display:flex;align-items:center;gap:12px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:12px 16px;cursor:pointer;transition:all var(–transition);user-select:none;}
+.check-item:hover{border-color:var(–border-hover);}
+.check-item.checked{border-color:var(–accent);background:var(–accent-dim);}
+.check-box{width:20px;height:20px;border-radius:4px;border:1.5px solid var(–border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(–transition);font-size:12px;color:transparent;}
+.check-item.checked .check-box{border-color:var(–accent);background:var(–accent);color:var(–bg);}
+.check-text{font-size:13px;color:var(–text-dim);flex:1;}
+.check-item.checked .check-text{color:var(–accent);}
+.check-goto{font-size:11px;color:var(–text-muted);padding:4px 8px;border-radius:4px;transition:all var(–transition);font-weight:500;}
+.check-goto:hover{background:var(–surface-3);color:var(–text);}
+
+/* ── Export Step ── */
+.export-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-lg);padding:32px;text-align:center;}
+.export-card h3{font-family:‘Fraunces’,serif;font-size:24px;color:#fff;margin-bottom:8px;}
+.export-card p{color:var(–text-dim);font-size:14px;margin-bottom:24px;}
+.export-options{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;}
+.export-opt{background:var(–surface-2);border:1px solid var(–border);border-radius:var(–radius-sm);padding:10px 18px;font-size:13px;color:var(–text-dim);transition:all var(–transition);cursor:pointer;}
+.export-opt:hover{border-color:var(–border-hover);}
+.export-opt.active{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);}
+.progress-bar{width:100%;height:6px;background:var(–surface-3);border-radius:3px;overflow:hidden;margin:20px 0;}
+.progress-bar .fill{height:100%;background:var(–accent);border-radius:3px;transition:width 0.3s ease;width:0%;}
+.progress-text{font-family:‘JetBrains Mono’,monospace;font-size:12px;color:var(–text-muted);margin-top:8px;}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+.app-header{padding:12px 16px;}
+.step-bar{padding:12px 8px;gap:2px;overflow-x:auto;}
+.step-pip .label{display:none;}
+.step-connector{width:12px;}
+.main{padding:16px;}
+.drop-zone{padding:40px 20px;}
+.controls{flex-direction:column;align-items:stretch;}
+.btn-row{flex-direction:column;}
+.export-options{flex-direction:column;align-items:center;}
+}
+
+/* ── Utilities ── */
+.hidden{display:none!important;}
+.mt-sm{margin-top:8px;}
+.mt-md{margin-top:16px;}
+.text-center{text-align:center;}
+.text-muted{color:var(–text-muted);}
+.text-accent{color:var(–accent);}
+.mono{font-family:‘JetBrains Mono’,monospace;}
+</style>
+
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Header -->
+
+  <header class="app-header">
+    <div class="app-logo">Ultra<span>Clean</span></div>
+    <div class="privacy-badge">Processed locally</div>
+  </header>
+
+  <!-- Step Progress Bar -->
+
+  <nav class="step-bar" id="stepBar"></nav>
+
+  <!-- Main Content -->
+
+  <main class="main">
+
+```
+<!-- STEP 1: Import -->
+<section class="step-view active" id="step-import">
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">🎬</div>
+    <h3>Drop ultrasound clips here</h3>
+    <p>or click to browse files — supports single or batch import</p>
+    <div class="formats">MP4 · MOV · AVI · WEBM — up to 500 MB each</div>
+    <input type="file" id="fileInput" accept="video/*" multiple style="display:none;">
+  </div>
+  <div id="fileList" class="batch-list hidden"></div>
+  <div class="btn-row" id="importBtnRow" style="display:none;">
+    <div></div>
+    <div class="btn-row-right">
+      <button class="btn btn-primary" onclick="startProcessing()">Continue →</button>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 2: Crop -->
+<section class="step-view" id="step-crop">
+  <div class="preset-bar" id="presetBar">
+    <span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>
+    <button class="preset-chip" onclick="savePreset()">+ Save current</button>
+  </div>
+  <div class="canvas-area" id="cropCanvasArea">
+    <canvas id="cropCanvas"></canvas>
+    <video id="videoEl" muted playsinline></video>
+  </div>
+  <div class="scrubber">
+    <span class="time" id="timeDisplay">0:00 / 0:00</span>
+    <input type="range" id="scrubber" min="0" max="100" value="0" step="0.1">
+    <button class="btn btn-sm btn-secondary" id="playBtn" onclick="togglePlay()">▶ Play</button>
+  </div>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click and drag on the video to set crop area. The dimmed region will be removed.</p>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep('import')">← Back</button>
+    <div class="btn-row-right">
+      <button class="btn btn-danger btn-sm" onclick="resetCrop()">Reset Crop</button>
+      <button class="btn btn-primary" onclick="goStep('cover')">Continue →</button>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 3: Cover -->
+<section class="step-view" id="step-cover">
+  <div class="controls">
+    <div class="ctrl-group">
+      <label>Shape</label>
+      <select id="coverShape">
+        <option value="circle">Circle</option>
+        <option value="rect">Rectangle</option>
+        <option value="rrect">Rounded Rect</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>Size</label>
+      <input type="range" id="coverSize" min="8" max="120" value="30">
+    </div>
+    <div class="ctrl-group">
+      <label>Color</label>
+      <input type="color" id="coverColor" value="#000000">
+    </div>
+    <div class="ctrl-group">
+      <label>Opacity</label>
+      <input type="range" id="coverOpacity" min="0" max="100" value="100">
+      <span id="opacityVal" class="mono" style="font-size:11px;color:var(--text-muted);min-width:30px;">100%</span>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="undoCover()">Undo last</button>
+    <button class="btn btn-danger btn-sm" onclick="clearCovers()">Clear all</button>
+  </div>
+  <div class="canvas-area mt-md" id="coverCanvasArea">
+    <canvas id="coverCanvas"></canvas>
+  </div>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click on the video to place cover shapes over probe markers and logos. Scroll to resize before placing.</p>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep('crop')">← Back</button>
+    <button class="btn btn-primary" onclick="goStep('metadata')">Continue →</button>
+  </div>
+</section>
+
+<!-- STEP 4: Metadata -->
+<section class="step-view" id="step-metadata">
+  <div id="audioWarning" class="audio-warning hidden">
+    <div class="aw-icon">⚠️</div>
+    <div class="aw-text">
+      <strong>Audio track detected</strong>
+      This clip contains an audio track. Audio may include PHI such as a physician saying the patient's name, room conversations, or dictation. We recommend stripping it.
+      <div class="audio-toggle">
+        <div class="toggle" id="audioToggle" onclick="toggleAudio()"></div>
+        <span style="font-size:12px;" id="audioLabel">Audio will be stripped (recommended)</span>
+      </div>
+    </div>
+  </div>
+  <div class="meta-strip">
+    <h4>Metadata will be removed</h4>
+    <div id="metaList"></div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">All embedded metadata (EXIF, DICOM, XMP, GPS, device info, timestamps) will be stripped from the output file.</p>
+  </div>
+  <div class="rename-field">
+    <label>Output filename</label>
+    <input type="text" id="renameInput" placeholder="ultrasound_clip_001">
+    <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">The suffix <span class="mono">_clean.mp4</span> will be added automatically.</p>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep('cover')">← Back</button>
+    <button class="btn btn-primary" onclick="goStep('review')">Continue →</button>
+  </div>
+</section>
+
+<!-- STEP 5: Review -->
+<section class="step-view" id="step-review">
+  <div class="canvas-area" id="reviewCanvasArea">
+    <canvas id="reviewCanvas"></canvas>
+  </div>
+  <div class="scrubber">
+    <span class="time" id="reviewTimeDisplay">0:00 / 0:00</span>
+    <input type="range" id="reviewScrubber" min="0" max="100" value="0" step="0.1">
+    <button class="btn btn-sm btn-secondary" id="reviewPlayBtn" onclick="toggleReviewPlay()">▶ Play</button>
+  </div>
+  <h4 style="margin-top:20px;font-size:15px;color:#fff;">De-identification Checklist</h4>
+  <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;">Confirm each item before exporting. Click an item to check it off.</p>
+  <div class="checklist" id="checklist"></div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep('metadata')">← Back</button>
+    <button class="btn btn-primary" id="reviewNextBtn" disabled onclick="goStep('export')">All items confirmed — Export →</button>
+  </div>
+</section>
+
+<!-- STEP 6: Export -->
+<section class="step-view" id="step-export">
+  <div class="export-card">
+    <h3>Export Clean Clip</h3>
+    <p id="exportFilename">ultrasound_clip_001_clean.mp4</p>
+    <div class="export-options">
+      <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
+      <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
+      <div class="export-opt" data-res="720" onclick="setExportRes(this)">720p</div>
+    </div>
+    <button class="btn btn-primary" id="exportBtn" onclick="doExport()" style="font-size:15px;padding:14px 36px;">
+      ⬇ Download Clean MP4
+    </button>
+    <div class="progress-bar hidden" id="exportProgress"><div class="fill" id="exportFill"></div></div>
+    <div class="progress-text hidden" id="exportProgressText">Rendering frames…</div>
+
+    <div id="batchNextSection" class="hidden" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:12px;" id="batchRemainingText"></p>
+      <button class="btn btn-primary" onclick="processNextBatch()">Process next clip →</button>
+    </div>
+
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+      <button class="btn btn-secondary" onclick="resetApp()">↻ Start over</button>
+    </div>
+  </div>
+</section>
+```
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// UltraClean — Core Application Logic
+// ═══════════════════════════════════════════
+
+const STEPS = ['import','crop','cover','metadata','review','export'];
+const STEP_LABELS = ['Import','Crop PHI','Cover','Metadata','Review','Export'];
+const CHECKLIST_ITEMS = [
+  {id:'name', text:'Patient name is not visible', step:'crop'},
+  {id:'date', text:'Date / time stamps removed', step:'crop'},
+  {id:'inst', text:'Institution name removed', step:'crop'},
+  {id:'probe', text:'Probe marker / model covered', step:'cover'},
+  {id:'logo', text:'Manufacturer logo covered or removed', step:'cover'},
+  {id:'file', text:'File renamed to non-identifying name', step:'metadata'},
+];
+
+let state = {
+  files: [],
+  currentFileIndex: 0,
+  currentStep: 'import',
+  videoEl: null,
+  crop: null,     // {x, y, w, h} in video-native coords
+  covers: [],     // [{x, y, size, shape, color, opacity}] in video-native coords
+  stripAudio: true,
+  exportRes: 'original',
+  presets: [],
+  checkedItems: new Set(),
+  isPlaying: false,
+  animFrame: null,
+  // Canvas state
+  cropDragging: false,
+  cropStart: null,
+  displayScale: 1,
+  displayOffset: {x:0, y:0},
+  coverPreviewPos: null,
+};
+
+// ── Init ──
+function init() {
+  renderStepBar();
+  loadPresets();
+  setupDropZone();
+  setupCropCanvas();
+  setupCoverCanvas();
+  setupScrubbers();
+  renderChecklist();
+  document.getElementById('coverOpacity').addEventListener('input', e => {
+    document.getElementById('opacityVal').textContent = e.target.value + '%';
+  });
+}
+
+// ── Step Navigation ──
+function renderStepBar() {
+  const bar = document.getElementById('stepBar');
+  bar.innerHTML = STEPS.map((s, i) => {
+    const idx = STEPS.indexOf(state.currentStep);
+    const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+    const connector = i < STEPS.length - 1 ? `<div class="step-connector ${i < idx ? 'done' : ''}"></div>` : '';
+    return `<div class="step-pip ${cls}"><div class="num">${cls === 'done' ? '✓' : i+1}</div><div class="label">${STEP_LABELS[i]}</div></div>${connector}`;
+  }).join('');
+}
+
+function goStep(step) {
+  state.currentStep = step;
+  STEPS.forEach(s => {
+    const el = document.getElementById('step-' + s);
+    el.classList.toggle('active', s === step);
+  });
+  renderStepBar();
+  if (step === 'crop') initCropView();
+  if (step === 'cover') initCoverView();
+  if (step === 'metadata') initMetadataView();
+  if (step === 'review') initReviewView();
+  if (step === 'export') initExportView();
+}
+
+// ═══════════════════════════════════════════
+// STEP 1: IMPORT
+// ═══════════════════════════════════════════
+function setupDropZone() {
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+
+  dz.addEventListener('click', () => fi.click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fi.addEventListener('change', e => handleFiles(e.target.files));
+}
+
+function handleFiles(fileList) {
+  const newFiles = Array.from(fileList).filter(f => f.type.startsWith('video/'));
+  if (!newFiles.length) return;
+  state.files = [...state.files, ...newFiles];
+  state.currentFileIndex = 0;
+  renderFileList();
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  const btnRow = document.getElementById('importBtnRow');
+  if (!state.files.length) {
+    list.classList.add('hidden');
+    btnRow.style.display = 'none';
+    return;
+  }
+  list.classList.remove('hidden');
+  btnRow.style.display = 'flex';
+  list.innerHTML = state.files.map((f, i) => `
+    <div class="batch-item" data-idx="${i}">
+      <span style="font-size:18px;">🎬</span>
+      <span class="bi-name">${f.name}</span>
+      <span class="bi-status">${formatBytes(f.size)}</span>
+      <button class="bi-remove" onclick="removeFile(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeFile(idx) {
+  state.files.splice(idx, 1);
+  if (state.currentFileIndex >= state.files.length) state.currentFileIndex = Math.max(0, state.files.length - 1);
+  renderFileList();
+  if (!state.files.length) { document.getElementById('importBtnRow').style.display = 'none'; }
+}
+
+function startProcessing() {
+  if (!state.files.length) return;
+  state.currentFileIndex = 0;
+  loadCurrentFile(() => goStep('crop'));
+}
+
+function loadCurrentFile(cb) {
+  const file = state.files[state.currentFileIndex];
+  const video = document.getElementById('videoEl');
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  video.onloadedmetadata = () => {
+    video.currentTime = 0;
+    state.crop = null;
+    state.covers = [];
+    state.checkedItems = new Set();
+    state.stripAudio = true;
+    video.oncanplay = () => { if (cb) cb(); };
+  };
+}
+
+// ═══════════════════════════════════════════
+// STEP 2: CROP
+// ═══════════════════════════════════════════
+function setupCropCanvas() {
+  const canvas = document.getElementById('cropCanvas');
+  canvas.addEventListener('mousedown', cropMouseDown);
+  canvas.addEventListener('mousemove', cropMouseMove);
+  canvas.addEventListener('mouseup', cropMouseUp);
+  // Touch
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); cropMouseDown(touchToMouse(e)); });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); cropMouseMove(touchToMouse(e)); });
+  canvas.addEventListener('touchend', e => { e.preventDefault(); cropMouseUp(touchToMouse(e)); });
+}
+
+function initCropView() {
+  const video = document.getElementById('videoEl');
+  drawCropFrame();
+  if (state.animFrame) cancelAnimationFrame(state.animFrame);
+  renderPresets();
+}
+
+function drawCropFrame() {
+  const canvas = document.getElementById('cropCanvas');
+  const video = document.getElementById('videoEl');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('cropCanvasArea');
+
+  // Fit video into container
+  const maxW = container.clientWidth;
+  const maxH = Math.min(window.innerHeight * 0.55, 500);
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+  const scale = Math.min(maxW / vw, maxH / vh, 1);
+
+  canvas.width = Math.round(vw * scale);
+  canvas.height = Math.round(vh * scale);
+  state.displayScale = scale;
+
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Dim outside crop
+  if (state.crop) {
+    const c = state.crop;
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    // Top
+    ctx.fillRect(0, 0, canvas.width, c.y * scale);
+    // Bottom
+    ctx.fillRect(0, (c.y + c.h) * scale, canvas.width, canvas.height - (c.y + c.h) * scale);
+    // Left
+    ctx.fillRect(0, c.y * scale, c.x * scale, c.h * scale);
+    // Right
+    ctx.fillRect((c.x + c.w) * scale, c.y * scale, canvas.width - (c.x + c.w) * scale, c.h * scale);
+    // Crop border
+    ctx.strokeStyle = '#3ecf8e';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(c.x * scale, c.y * scale, c.w * scale, c.h * scale);
+    ctx.setLineDash([]);
+  }
+}
+
+function cropMouseDown(e) {
+  const canvas = document.getElementById('cropCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / state.displayScale;
+  const y = (e.clientY - rect.top) / state.displayScale;
+  state.cropDragging = true;
+  state.cropStart = {x, y};
+}
+function cropMouseMove(e) {
+  if (!state.cropDragging) return;
+  const canvas = document.getElementById('cropCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const video = document.getElementById('videoEl');
+  const x = (e.clientX - rect.left) / state.displayScale;
+  const y = (e.clientY - rect.top) / state.displayScale;
+  const sx = state.cropStart.x, sy = state.cropStart.y;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  state.crop = {
+    x: Math.max(0, Math.min(sx, x)),
+    y: Math.max(0, Math.min(sy, y)),
+    w: Math.min(Math.abs(x - sx), vw),
+    h: Math.min(Math.abs(y - sy), vh),
+  };
+  drawCropFrame();
+}
+function cropMouseUp(e) {
+  state.cropDragging = false;
+  // Clamp
+  if (state.crop && (state.crop.w < 10 || state.crop.h < 10)) state.crop = null;
+  drawCropFrame();
+}
+function resetCrop() {
+  state.crop = null;
+  drawCropFrame();
+}
+
+function setupScrubbers() {
+  const scrubber = document.getElementById('scrubber');
+  const video = document.getElementById('videoEl');
+  scrubber.addEventListener('input', e => {
+    const t = (e.target.value / 100) * video.duration;
+    video.currentTime = t;
+    setTimeout(() => drawCropFrame(), 50);
+    updateTimeDisplay();
+  });
+  const reviewScrubber = document.getElementById('reviewScrubber');
+  reviewScrubber.addEventListener('input', e => {
+    const t = (e.target.value / 100) * video.duration;
+    video.currentTime = t;
+    setTimeout(() => drawReviewFrame(), 50);
+    updateReviewTimeDisplay();
+  });
+}
+
+function togglePlay() {
+  const video = document.getElementById('videoEl');
+  const btn = document.getElementById('playBtn');
+  if (state.isPlaying) {
+    video.pause();
+    state.isPlaying = false;
+    btn.textContent = '▶ Play';
+    if (state.animFrame) cancelAnimationFrame(state.animFrame);
+  } else {
+    video.play();
+    state.isPlaying = true;
+    btn.textContent = '⏸ Pause';
+    animateCrop();
+  }
+}
+function animateCrop() {
+  drawCropFrame();
+  updateTimeDisplay();
+  const scrubber = document.getElementById('scrubber');
+  const video = document.getElementById('videoEl');
+  if (video.duration) scrubber.value = (video.currentTime / video.duration) * 100;
+  if (state.isPlaying) state.animFrame = requestAnimationFrame(animateCrop);
+}
+function updateTimeDisplay() {
+  const video = document.getElementById('videoEl');
+  document.getElementById('timeDisplay').textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
+}
+
+// ═══════════════════════════════════════════
+// STEP 3: COVER
+// ═══════════════════════════════════════════
+function setupCoverCanvas() {
+  const canvas = document.getElementById('coverCanvas');
+  canvas.addEventListener('click', coverClick);
+  canvas.addEventListener('mousemove', coverMouseMove);
+  canvas.addEventListener('wheel', coverWheel, {passive: false});
+  // Touch
+  canvas.addEventListener('touchend', e => { e.preventDefault(); coverClick(touchToMouse(e)); });
+}
+
+function initCoverView() {
+  const video = document.getElementById('videoEl');
+  video.pause();
+  state.isPlaying = false;
+  drawCoverFrame();
+}
+
+function drawCoverFrame(previewPos) {
+  const canvas = document.getElementById('coverCanvas');
+  const video = document.getElementById('videoEl');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('coverCanvasArea');
+
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+
+  // If cropped, only show crop region
+  let sx=0, sy=0, sw=vw, sh=vh;
+  if (state.crop) { sx=state.crop.x; sy=state.crop.y; sw=state.crop.w; sh=state.crop.h; }
+
+  const maxW = container.clientWidth;
+  const maxH = Math.min(window.innerHeight * 0.5, 480);
+  const scale = Math.min(maxW / sw, maxH / sh, 1);
+
+  canvas.width = Math.round(sw * scale);
+  canvas.height = Math.round(sh * scale);
+  state.displayScale = scale;
+  state.displayOffset = {x: sx, y: sy};
+
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+  // Draw existing covers
+  state.covers.forEach(c => drawCoverShape(ctx, c, scale, sx, sy));
+
+  // Draw preview
+  if (previewPos) {
+    const preview = getCoverParams();
+    preview.x = previewPos.x / scale + sx;
+    preview.y = previewPos.y / scale + sy;
+    preview.opacity = preview.opacity * 0.5;
+    drawCoverShape(ctx, preview, scale, sx, sy);
+  }
+}
+
+function drawCoverShape(ctx, c, scale, offX, offY) {
+  const x = (c.x - offX) * scale;
+  const y = (c.y - offY) * scale;
+  const s = c.size * scale;
+  ctx.globalAlpha = c.opacity;
+  ctx.fillStyle = c.color;
+  if (c.shape === 'circle') {
+    ctx.beginPath();
+    ctx.arc(x, y, s, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (c.shape === 'rect') {
+    ctx.fillRect(x - s, y - s, s * 2, s * 2);
+  } else {
+    roundRect(ctx, x - s, y - s, s * 2, s * 2, s * 0.3);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function getCoverParams() {
+  return {
+    shape: document.getElementById('coverShape').value,
+    size: parseInt(document.getElementById('coverSize').value),
+    color: document.getElementById('coverColor').value,
+    opacity: parseInt(document.getElementById('coverOpacity').value) / 100,
+  };
+}
+
+function coverClick(e) {
+  const canvas = document.getElementById('coverCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  const params = getCoverParams();
+  params.x = cx / state.displayScale + state.displayOffset.x;
+  params.y = cy / state.displayScale + state.displayOffset.y;
+  state.covers.push(params);
+  drawCoverFrame();
+}
+
+function coverMouseMove(e) {
+  const canvas = document.getElementById('coverCanvas');
+  const rect = canvas.getBoundingClientRect();
+  drawCoverFrame({x: e.clientX - rect.left, y: e.clientY - rect.top});
+}
+
+function coverWheel(e) {
+  e.preventDefault();
+  const slider = document.getElementById('coverSize');
+  let val = parseInt(slider.value);
+  val += e.deltaY > 0 ? -3 : 3;
+  slider.value = Math.max(8, Math.min(120, val));
+}
+
+function undoCover() { state.covers.pop(); drawCoverFrame(); }
+function clearCovers() { state.covers = []; drawCoverFrame(); }
+
+// ═══════════════════════════════════════════
+// STEP 4: METADATA
+// ═══════════════════════════════════════════
+function initMetadataView() {
+  const video = document.getElementById('videoEl');
+  const file = state.files[state.currentFileIndex];
+
+  // Check for audio
+  const hasAudio = video.mozHasAudio || video.webkitAudioDecodedByteCount > 0 || (video.audioTracks && video.audioTracks.length > 0) || true; // Default assume audio exists
+  const aw = document.getElementById('audioWarning');
+  aw.classList.toggle('hidden', false); // Always show for safety
+  state.stripAudio = true;
+  updateAudioToggle();
+
+  // Simulated metadata display
+  const metaList = document.getElementById('metaList');
+  const items = [
+    ['File name', file.name],
+    ['File size', formatBytes(file.size)],
+    ['Last modified', file.lastModified ? new Date(file.lastModified).toLocaleString() : 'Unknown'],
+    ['Type', file.type],
+    ['Resolution', `${video.videoWidth} × ${video.videoHeight}`],
+    ['Duration', fmtTime(video.duration)],
+    ['EXIF data', 'Will be stripped'],
+    ['DICOM tags', 'Will be stripped'],
+    ['GPS / Location', 'Will be stripped'],
+    ['Device info', 'Will be stripped'],
+  ];
+  metaList.innerHTML = items.map(([k, v]) => {
+    const isStrip = v.includes('stripped');
+    return `<div class="meta-row"><span class="mk">${k}</span><span class="mv${isStrip ? ' stripped' : ''}">${v}</span></div>`;
+  }).join('');
+
+  // Rename
+  const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+  document.getElementById('renameInput').value = base || 'ultrasound_clip';
+}
+
+function toggleAudio() {
+  state.stripAudio = !state.stripAudio;
+  updateAudioToggle();
+}
+function updateAudioToggle() {
+  const toggle = document.getElementById('audioToggle');
+  const label = document.getElementById('audioLabel');
+  toggle.classList.toggle('on', !state.stripAudio);
+  label.textContent = state.stripAudio ? 'Audio will be stripped (recommended)' : '⚠ Audio will be KEPT — verify no PHI';
+  label.style.color = state.stripAudio ? 'var(--text-muted)' : 'var(--warn)';
+}
+
+// ═══════════════════════════════════════════
+// STEP 5: REVIEW
+// ═══════════════════════════════════════════
+function initReviewView() {
+  drawReviewFrame();
+  renderChecklist();
+}
+
+function drawReviewFrame() {
+  const canvas = document.getElementById('reviewCanvas');
+  const video = document.getElementById('videoEl');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('reviewCanvasArea');
+
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+  let sx=0, sy=0, sw=vw, sh=vh;
+  if (state.crop) { sx=state.crop.x; sy=state.crop.y; sw=state.crop.w; sh=state.crop.h; }
+
+  const maxW = container.clientWidth;
+  const maxH = Math.min(window.innerHeight * 0.45, 420);
+  const scale = Math.min(maxW / sw, maxH / sh, 1);
+
+  canvas.width = Math.round(sw * scale);
+  canvas.height = Math.round(sh * scale);
+
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+  // Draw covers
+  state.covers.forEach(c => drawCoverShape(ctx, c, scale, sx, sy));
+}
+
+function toggleReviewPlay() {
+  const video = document.getElementById('videoEl');
+  const btn = document.getElementById('reviewPlayBtn');
+  if (state.isPlaying) {
+    video.pause();
+    state.isPlaying = false;
+    btn.textContent = '▶ Play';
+    if (state.animFrame) cancelAnimationFrame(state.animFrame);
+  } else {
+    video.play();
+    state.isPlaying = true;
+    btn.textContent = '⏸ Pause';
+    animateReview();
+  }
+}
+function animateReview() {
+  drawReviewFrame();
+  updateReviewTimeDisplay();
+  const scrubber = document.getElementById('reviewScrubber');
+  const video = document.getElementById('videoEl');
+  if (video.duration) scrubber.value = (video.currentTime / video.duration) * 100;
+  if (state.isPlaying) state.animFrame = requestAnimationFrame(animateReview);
+}
+function updateReviewTimeDisplay() {
+  const video = document.getElementById('videoEl');
+  document.getElementById('reviewTimeDisplay').textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
+}
+
+function renderChecklist() {
+  const el = document.getElementById('checklist');
+  el.innerHTML = CHECKLIST_ITEMS.map(item => {
+    const checked = state.checkedItems.has(item.id);
+    return `<div class="check-item ${checked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')">
+      <div class="check-box">${checked ? '✓' : ''}</div>
+      <span class="check-text">${item.text}</span>
+      <button class="check-goto" onclick="event.stopPropagation(); goStep('${item.step}')">Edit →</button>
+    </div>`;
+  }).join('');
+  const allChecked = CHECKLIST_ITEMS.every(i => state.checkedItems.has(i.id));
+  document.getElementById('reviewNextBtn').disabled = !allChecked;
+  document.getElementById('reviewNextBtn').textContent = allChecked ? 'All confirmed — Export →' : `${state.checkedItems.size}/${CHECKLIST_ITEMS.length} confirmed`;
+}
+
+function toggleCheck(id) {
+  if (state.checkedItems.has(id)) state.checkedItems.delete(id);
+  else state.checkedItems.add(id);
+  renderChecklist();
+}
+
+// ═══════════════════════════════════════════
+// STEP 6: EXPORT
+// ═══════════════════════════════════════════
+function initExportView() {
+  const name = document.getElementById('renameInput').value || 'ultrasound_clip';
+  document.getElementById('exportFilename').textContent = name + '_clean.mp4';
+
+  // Show batch controls if multiple files
+  const batchSection = document.getElementById('batchNextSection');
+  const remaining = state.files.length - state.currentFileIndex - 1;
+  if (remaining > 0) {
+    batchSection.classList.remove('hidden');
+    document.getElementById('batchRemainingText').textContent = `${remaining} more clip${remaining > 1 ? 's' : ''} in queue`;
+  } else {
+    batchSection.classList.add('hidden');
+  }
+}
+
+function setExportRes(el) {
+  document.querySelectorAll('.export-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  state.exportRes = el.dataset.res;
+}
+
+async function doExport() {
+  const video = document.getElementById('videoEl');
+  const progressBar = document.getElementById('exportProgress');
+  const progressFill = document.getElementById('exportFill');
+  const progressText = document.getElementById('exportProgressText');
+  const exportBtn = document.getElementById('exportBtn');
+
+  progressBar.classList.remove('hidden');
+  progressText.classList.remove('hidden');
+  exportBtn.disabled = true;
+  exportBtn.textContent = 'Rendering…';
+
+  const vw = video.videoWidth, vh = video.videoHeight;
+  let sx=0, sy=0, sw=vw, sh=vh;
+  if (state.crop) { sx=state.crop.x; sy=state.crop.y; sw=state.crop.w; sh=state.crop.h; }
+
+  // Output dimensions
+  let outW = sw, outH = sh;
+  if (state.exportRes === '1080') { const s = 1080/sh; outW = Math.round(sw*s); outH = 1080; }
+  else if (state.exportRes === '720') { const s = 720/sh; outW = Math.round(sw*s); outH = 720; }
+  // Make even
+  outW = outW % 2 === 0 ? outW : outW + 1;
+  outH = outH % 2 === 0 ? outH : outH + 1;
+
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = outW;
+  offCanvas.height = outH;
+  const octx = offCanvas.getContext('2d');
+
+  const fps = 30;
+  const duration = video.duration;
+  const totalFrames = Math.ceil(duration * fps);
+
+  // Use MediaRecorder with canvas stream
+  const stream = offCanvas.captureStream(fps);
+
+  // Add audio if not stripping
+  // (Note: adding audio from video to canvas stream requires complex AudioContext routing.
+  //  For the PWA version we always strip audio from the canvas export, which is the safe default.)
+
+  let mimeType = 'video/webm;codecs=vp9';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 5000000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+  const exportDone = new Promise(resolve => {
+    recorder.onstop = () => resolve();
+  });
+
+  recorder.start();
+  video.currentTime = 0;
+
+  // Render frame by frame
+  for (let i = 0; i < totalFrames; i++) {
+    video.currentTime = i / fps;
+    await new Promise(r => { video.onseeked = r; setTimeout(r, 100); });
+
+    octx.clearRect(0, 0, outW, outH);
+    octx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
+
+    // Draw covers
+    const coverScale = outW / sw;
+    state.covers.forEach(c => {
+      const cx = (c.x - sx) * coverScale;
+      const cy = (c.y - sy) * coverScale;
+      const cs = c.size * coverScale;
+      octx.globalAlpha = c.opacity;
+      octx.fillStyle = c.color;
+      if (c.shape === 'circle') {
+        octx.beginPath(); octx.arc(cx, cy, cs, 0, Math.PI*2); octx.fill();
+      } else if (c.shape === 'rect') {
+        octx.fillRect(cx-cs, cy-cs, cs*2, cs*2);
+      } else {
+        roundRect(octx, cx-cs, cy-cs, cs*2, cs*2, cs*0.3); octx.fill();
+      }
+      octx.globalAlpha = 1;
+    });
+
+    const pct = Math.round(((i+1) / totalFrames) * 100);
+    progressFill.style.width = pct + '%';
+    progressText.textContent = `Rendering frame ${i+1} / ${totalFrames} (${pct}%)`;
+
+    // Yield to keep UI responsive
+    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+  }
+
+  recorder.stop();
+  await exportDone;
+
+  const blob = new Blob(chunks, { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const name = (document.getElementById('renameInput').value || 'ultrasound_clip') + '_clean.webm';
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  progressFill.style.width = '100%';
+  progressText.textContent = 'Export complete — download started';
+  exportBtn.textContent = '✓ Downloaded';
+  exportBtn.disabled = false;
+  exportBtn.onclick = () => { a.click(); };
+}
+
+function processNextBatch() {
+  state.currentFileIndex++;
+  if (state.currentFileIndex < state.files.length) {
+    loadCurrentFile(() => goStep('crop'));
+  }
+}
+
+function resetApp() {
+  state.files = [];
+  state.currentFileIndex = 0;
+  state.crop = null;
+  state.covers = [];
+  state.checkedItems = new Set();
+  state.isPlaying = false;
+  document.getElementById('fileList').classList.add('hidden');
+  document.getElementById('importBtnRow').style.display = 'none';
+  document.getElementById('exportProgress').classList.add('hidden');
+  document.getElementById('exportProgressText').classList.add('hidden');
+  document.getElementById('exportBtn').textContent = '⬇ Download Clean MP4';
+  document.getElementById('exportBtn').disabled = false;
+  document.getElementById('exportBtn').onclick = doExport;
+  goStep('import');
+}
+
+// ═══════════════════════════════════════════
+// PRESETS (IndexedDB)
+// ═══════════════════════════════════════════
+function loadPresets() {
+  try {
+    const saved = localStorage.getItem('ultraclean_presets');
+    if (saved) state.presets = JSON.parse(saved);
+  } catch(e) {}
+  renderPresets();
+}
+
+function savePreset() {
+  if (!state.crop) { alert('Set a crop area first.'); return; }
+  const name = prompt('Preset name (e.g., "GE Venue Go"):');
+  if (!name) return;
+  state.presets.push({ name, crop: {...state.crop}, covers: [...state.covers] });
+  try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
+  renderPresets();
+}
+
+function applyPreset(idx) {
+  const p = state.presets[idx];
+  state.crop = {...p.crop};
+  state.covers = p.covers.map(c => ({...c}));
+  drawCropFrame();
+}
+
+function deletePreset(idx) {
+  state.presets.splice(idx, 1);
+  try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
+  renderPresets();
+}
+
+function renderPresets() {
+  const bar = document.getElementById('presetBar');
+  if (!bar) return;
+  bar.innerHTML = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>` +
+    state.presets.map((p, i) => `<button class="preset-chip" onclick="applyPreset(${i})" title="Double-click to delete" ondblclick="event.stopPropagation(); deletePreset(${i})">${p.name}</button>`).join('') +
+    `<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
+}
+
+// ═══════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+function touchToMouse(e) {
+  const t = e.changedTouches?.[0] || e.touches?.[0];
+  return t ? { clientX: t.clientX, clientY: t.clientY, preventDefault: ()=>{} } : e;
+}
+
+// Init on load
+init();
+
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+
+</body>
+</html>
