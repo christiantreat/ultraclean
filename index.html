@@ -289,6 +289,7 @@ body.light .canvas-area { background: #222; }
 
 <!-- STEP 3: Cover -->
 <section class="step-view" id="step-cover">
+  <div class="preset-bar" id="presetBarCover"></div>
   <div class="controls">
     <div class="ctrl-group">
       <label>Shape</label>
@@ -732,6 +733,7 @@ function initCoverView() {
   const video = document.getElementById('videoEl');
   video.pause();
   state.isPlaying = false;
+  renderPresets();
   drawCoverFrame();
 }
 
@@ -979,7 +981,8 @@ function toggleCheck(id) {
 // ═══════════════════════════════════════════
 function initExportView() {
   const name = document.getElementById('renameInput').value || 'ultrasound_clip';
-  document.getElementById('exportFilename').textContent = name + '_clean.mp4';
+  const mp4Ok = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') || MediaRecorder.isTypeSupported('video/mp4');
+  document.getElementById('exportFilename').textContent = name + (mp4Ok ? '_clean.mp4' : '_clean.webm');
 
   // Show batch controls if multiple files
   const batchSection = document.getElementById('batchNextSection');
@@ -1038,7 +1041,9 @@ async function doExport() {
   // (Note: adding audio from video to canvas stream requires complex AudioContext routing.
   //  For the PWA version we always strip audio from the canvas export, which is the safe default.)
 
-  let mimeType = 'video/webm;codecs=vp9';
+  let mimeType = 'video/mp4;codecs=avc1';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp9';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
 
@@ -1093,7 +1098,8 @@ async function doExport() {
   const blob = new Blob(chunks, { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const name = (document.getElementById('renameInput').value || 'ultrasound_clip') + '_clean.webm';
+  const ext = mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
+  const name = (document.getElementById('renameInput').value || 'ultrasound_clip') + '_clean.' + ext;
   a.href = url;
   a.download = name;
   a.click();
@@ -1142,19 +1148,19 @@ function loadPresets() {
 }
 
 function savePreset() {
-  if (!state.crop) { alert('Set a crop area first.'); return; }
   const name = prompt('Preset name (e.g., "GE Venue Go"):');
   if (!name) return;
-  state.presets.push({ name, crop: {...state.crop}, covers: [...state.covers] });
+  state.presets.push({ name, crop: state.crop ? {...state.crop} : null, covers: state.covers.map(c => ({...c})) });
   try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
   renderPresets();
 }
 
 function applyPreset(idx) {
   const p = state.presets[idx];
-  state.crop = {...p.crop};
+  state.crop = p.crop ? {...p.crop} : null;
   state.covers = p.covers.map(c => ({...c}));
-  drawCropFrame();
+  if (state.currentStep === 'cover') drawCoverFrame();
+  else drawCropFrame();
 }
 
 function deletePreset(idx) {
@@ -1164,11 +1170,13 @@ function deletePreset(idx) {
 }
 
 function renderPresets() {
-  const bar = document.getElementById('presetBar');
-  if (!bar) return;
-  bar.innerHTML = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>` +
+  const html = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>` +
     state.presets.map((p, i) => `<button class="preset-chip" onclick="applyPreset(${i})" title="Double-click to delete" ondblclick="event.stopPropagation(); deletePreset(${i})">${p.name}</button>`).join('') +
     `<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
+  ['presetBar', 'presetBarCover'].forEach(id => {
+    const bar = document.getElementById(id);
+    if (bar) bar.innerHTML = html;
+  });
 }
 
 // ═══════════════════════════════════════════
