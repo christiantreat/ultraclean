@@ -190,27 +190,6 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 .export-options{flex-direction:column;align-items:center;}
 }
 
-/* ── Light theme ── */
-body.light {
-  --bg: #f5f6fa;
-  --surface: #ffffff;
-  --surface-2: #eef0f6;
-  --surface-3: #e2e5f0;
-  --border: #d4d8e8;
-  --border-hover: #adb3cc;
-  --text: #1a1f2e;
-  --text-dim: #4a5068;
-  --text-muted: #7a80a0;
-  --accent-dim: rgba(62,207,142,0.12);
-  --accent-glow: rgba(62,207,142,0.25);
-  --warn-dim: rgba(240,178,50,0.12);
-  --red-dim: rgba(239,100,97,0.12);
-  --shadow: 0 2px 12px rgba(0,0,0,0.1);
-}
-body.light .canvas-area { background: #222; }
-.theme-btn { font-size: 16px; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); line-height: 1; }
-.theme-btn:hover { border-color: var(--border-hover); }
-
 /* ── Utilities ── */
 .hidden{display:none!important;}
 .mt-sm{margin-top:8px;}
@@ -229,10 +208,7 @@ body.light .canvas-area { background: #222; }
 
   <header class="app-header">
     <div class="app-logo">Ultra<span>Clean</span></div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark theme">🌙</button>
-      <div class="privacy-badge">Processed locally</div>
-    </div>
+    <div class="privacy-badge">Processed locally</div>
   </header>
 
   <!-- Step Progress Bar -->
@@ -364,12 +340,9 @@ body.light .canvas-area { background: #222; }
     <input type="range" id="reviewScrubber" min="0" max="100" value="0" step="0.1">
     <button class="btn btn-sm btn-secondary" id="reviewPlayBtn" onclick="toggleReviewPlay()">▶ Play</button>
   </div>
-  <h4 style="margin-top:20px;font-size:15px;color:#fff;">De-identification Checklist</h4>
-  <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;">Confirm each item before exporting. Click an item to check it off.</p>
-  <div class="checklist" id="checklist"></div>
-  <div class="btn-row">
+  <div class="btn-row" style="margin-top:20px;">
     <button class="btn btn-secondary" onclick="goStep('metadata')">← Back</button>
-    <button class="btn btn-primary" id="reviewNextBtn" disabled onclick="goStep('export')">All items confirmed — Export →</button>
+    <button class="btn btn-primary" onclick="goStep('export')">Export →</button>
   </div>
 </section>
 
@@ -427,15 +400,6 @@ body.light .canvas-area { background: #222; }
 
 const STEPS = ['import','crop','cover','metadata','review','export'];
 const STEP_LABELS = ['Import','Crop PHI','Cover','Metadata','Review','Export'];
-const CHECKLIST_ITEMS = [
-  {id:'name', text:'Patient name is not visible', step:'crop'},
-  {id:'date', text:'Date / time stamps removed', step:'crop'},
-  {id:'inst', text:'Institution name removed', step:'crop'},
-  {id:'probe', text:'Probe marker / model covered', step:'cover'},
-  {id:'logo', text:'Manufacturer logo covered or removed', step:'cover'},
-  {id:'file', text:'File renamed to non-identifying name', step:'metadata'},
-];
-
 let state = {
   files: [],
   fileSettings: [],  // [{crop, covers}] — saved per file after cover step
@@ -447,7 +411,6 @@ let state = {
   stripAudio: true,
   exportRes: 'original',
   presets: [],
-  checkedItems: new Set(),
   isPlaying: false,
   animFrame: null,
   // Canvas state
@@ -466,9 +429,9 @@ function init() {
   setupCropCanvas();
   setupCoverCanvas();
   setupScrubbers();
-  renderChecklist();
   setupKeyboardShortcuts();
   document.getElementById('coverOpacity').addEventListener('input', e => {
+
     document.getElementById('opacityVal').textContent = e.target.value + '%';
   });
   document.getElementById('renameInput').addEventListener('input', e => {
@@ -600,7 +563,6 @@ function loadCurrentFile(cb) {
       video.currentTime = 0;
       state.crop = null;
       state.covers = [];
-      state.checkedItems = new Set();
       state.stripAudio = true;
       video.oncanplay = () => { if (cb) cb(); };
     } catch(err) {
@@ -614,14 +576,12 @@ function loadCurrentFile(cb) {
 // ═══════════════════════════════════════════
 function setupCropCanvas() {
   const canvas = document.getElementById('cropCanvas');
+  // mousedown starts the drag; mousemove/mouseup are on document so dragging
+  // outside the canvas border doesn't drop the selection mid-drag.
   canvas.addEventListener('mousedown', cropMouseDown);
-  canvas.addEventListener('mousemove', cropMouseMove);
-  canvas.addEventListener('mouseup', cropMouseUp);
-  canvas.addEventListener('mouseleave', cropMouseUp);
-  // Touch
   canvas.addEventListener('touchstart', e => { e.preventDefault(); cropMouseDown(touchToMouse(e)); });
-  canvas.addEventListener('touchmove', e => { e.preventDefault(); cropMouseMove(touchToMouse(e)); });
-  canvas.addEventListener('touchend', e => { e.preventDefault(); cropMouseUp(touchToMouse(e)); });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); cropMouseMove(touchToMouse(e)); });
+  canvas.addEventListener('touchend',   e => { e.preventDefault(); cropMouseUp(touchToMouse(e)); });
 }
 
 function initCropView() {
@@ -679,6 +639,8 @@ function cropMouseDown(e) {
   const y = (e.clientY - rect.top) / state.displayScale;
   state.cropDragging = true;
   state.cropStart = {x, y};
+  document.addEventListener('mousemove', cropMouseMove);
+  document.addEventListener('mouseup', cropMouseUp);
 }
 function cropMouseMove(e) {
   if (!state.cropDragging) return;
@@ -698,8 +660,10 @@ function cropMouseMove(e) {
   drawCropFrame();
 }
 function cropMouseUp(e) {
+  if (!state.cropDragging) return;
   state.cropDragging = false;
-  // Clamp
+  document.removeEventListener('mousemove', cropMouseMove);
+  document.removeEventListener('mouseup', cropMouseUp);
   if (state.crop && (state.crop.w < 10 || state.crop.h < 10)) state.crop = null;
   drawCropFrame();
 }
@@ -947,7 +911,6 @@ function updateAudioToggle() {
 // ═══════════════════════════════════════════
 function initReviewView() {
   drawReviewFrame();
-  renderChecklist();
 }
 
 function drawReviewFrame() {
@@ -1002,26 +965,6 @@ function updateReviewTimeDisplay() {
   document.getElementById('reviewTimeDisplay').textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
 }
 
-function renderChecklist() {
-  const el = document.getElementById('checklist');
-  el.innerHTML = CHECKLIST_ITEMS.map(item => {
-    const checked = state.checkedItems.has(item.id);
-    return `<div class="check-item ${checked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')">
-      <div class="check-box">${checked ? '✓' : ''}</div>
-      <span class="check-text">${item.text}</span>
-      <button class="check-goto" onclick="event.stopPropagation(); goStep('${item.step}')">Edit →</button>
-    </div>`;
-  }).join('');
-  const allChecked = CHECKLIST_ITEMS.every(i => state.checkedItems.has(i.id));
-  document.getElementById('reviewNextBtn').disabled = !allChecked;
-  document.getElementById('reviewNextBtn').textContent = allChecked ? 'All confirmed — Export →' : `${state.checkedItems.size}/${CHECKLIST_ITEMS.length} confirmed`;
-}
-
-function toggleCheck(id) {
-  if (state.checkedItems.has(id)) state.checkedItems.delete(id);
-  else state.checkedItems.add(id);
-  renderChecklist();
-}
 
 // ═══════════════════════════════════════════
 // STEP 6: EXPORT
@@ -1227,7 +1170,6 @@ function resetApp() {
   state.currentFileIndex = 0;
   state.crop = null;
   state.covers = [];
-  state.checkedItems = new Set();
   state.isPlaying = false;
   document.getElementById('fileList').classList.add('hidden');
   document.getElementById('importBtnRow').style.display = 'none';
@@ -1277,10 +1219,19 @@ function deletePreset(idx) {
   renderPresets();
 }
 
+function renamePreset(idx) {
+  const newName = prompt('Rename preset:', state.presets[idx].name);
+  if (!newName || !newName.trim()) return;
+  state.presets[idx].name = newName.trim();
+  try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
+  renderPresets();
+}
+
 function renderPresets() {
-  const html = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>` +
-    state.presets.map((p, i) => `<button class="preset-chip" onclick="applyPreset(${i})" title="Double-click to delete" ondblclick="event.stopPropagation(); deletePreset(${i})">${p.name}</button>`).join('') +
-    `<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
+  const chips = state.presets.map((p, i) =>
+    `<span class="preset-chip" onclick="applyPreset(${i})" ondblclick="event.stopPropagation();renamePreset(${i})" title="Click to apply · Double-click to rename">${p.name}<span onclick="event.stopPropagation();deletePreset(${i})" style="margin-left:6px;opacity:0.5;font-size:11px;line-height:1;" title="Delete">✕</span></span>`
+  ).join('');
+  const html = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>${chips}<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
   ['presetBar', 'presetBarCover'].forEach(id => {
     const bar = document.getElementById(id);
     if (bar) bar.innerHTML = html;
@@ -1337,12 +1288,6 @@ function stepFrame(dir) {
 // ═══════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('light');
-  localStorage.setItem('ultraclean_theme', isLight ? 'light' : 'dark');
-  document.getElementById('themeBtn').textContent = isLight ? '☀️' : '🌙';
-}
-
 function formatBytes(b) {
   if (b < 1024) return b + ' B';
   if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
@@ -1359,13 +1304,6 @@ function touchToMouse(e) {
 }
 
 // Init on load
-if (localStorage.getItem('ultraclean_theme') === 'light') {
-  document.body.classList.add('light');
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = '☀️';
-  });
-}
 init();
 
 // Register service worker for offline support
