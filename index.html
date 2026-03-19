@@ -277,7 +277,7 @@ body.light .canvas-area { background: #222; }
     <input type="range" id="scrubber" min="0" max="100" value="0" step="0.1">
     <button class="btn btn-sm btn-secondary" id="playBtn" onclick="togglePlay()">▶ Play</button>
   </div>
-  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click and drag on the video to set crop area. The dimmed region will be removed.</p>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click and drag on the video to set crop area. The dimmed region will be removed. <span id="cropFileProgress" style="color:var(--accent);font-weight:600;"></span></p>
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="goStep('import')">← Back</button>
     <div class="btn-row-right">
@@ -318,10 +318,10 @@ body.light .canvas-area { background: #222; }
   <div class="canvas-area mt-md" id="coverCanvasArea">
     <canvas id="coverCanvas"></canvas>
   </div>
-  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click on the video to place cover shapes over probe markers and logos. Scroll to resize before placing.</p>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click on the video to place cover shapes over probe markers and logos. Scroll to resize before placing. <span id="coverFileProgress" style="color:var(--accent);font-weight:600;"></span></p>
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="goStep('crop')">← Back</button>
-    <button class="btn btn-primary" onclick="goStep('metadata')">Continue →</button>
+    <button class="btn btn-primary" id="coverNextBtn" onclick="gotoNextFileOrMetadata()">Continue →</button>
   </div>
 </section>
 
@@ -376,8 +376,8 @@ body.light .canvas-area { background: #222; }
 <!-- STEP 6: Export -->
 <section class="step-view" id="step-export">
   <div class="export-card">
-    <h3>Export Clean Clip</h3>
-    <p id="exportFilename">ultrasound_clip_001_clean.mp4</p>
+    <h3 id="exportTitle">Export Clean Clip</h3>
+    <p id="exportFilename" style="font-family:'JetBrains Mono',monospace;font-size:12px;"></p>
     <div class="export-options">
       <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
       <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
@@ -388,11 +388,7 @@ body.light .canvas-area { background: #222; }
     </button>
     <div class="progress-bar hidden" id="exportProgress"><div class="fill" id="exportFill"></div></div>
     <div class="progress-text hidden" id="exportProgressText">Rendering frames…</div>
-
-    <div id="batchNextSection" class="hidden" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-      <p style="color:var(--text-dim);font-size:14px;margin-bottom:12px;" id="batchRemainingText"></p>
-      <button class="btn btn-primary" onclick="processNextBatch()">Process next clip →</button>
-    </div>
+    <div id="exportErrorBox" class="hidden" style="margin-top:12px;background:var(--red-dim);border:1px solid rgba(239,100,97,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--red);text-align:left;"></div>
 
     <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
       <button class="btn btn-secondary" onclick="resetApp()">↻ Start over</button>
@@ -422,6 +418,7 @@ const CHECKLIST_ITEMS = [
 
 let state = {
   files: [],
+  fileSettings: [],  // [{crop, covers}] — saved per file after cover step
   currentFileIndex: 0,
   currentStep: 'import',
   videoEl: null,
@@ -545,7 +542,26 @@ function removeFile(idx) {
 function startProcessing() {
   if (!state.files.length) return;
   state.currentFileIndex = 0;
+  state.fileSettings = state.files.map(() => ({ crop: null, covers: [] }));
   loadCurrentFile(() => goStep('crop'));
+}
+
+function saveCurrentSettings() {
+  state.fileSettings[state.currentFileIndex] = {
+    crop: state.crop ? {...state.crop} : null,
+    covers: state.covers.map(c => ({...c})),
+  };
+}
+
+function gotoNextFileOrMetadata() {
+  saveCurrentSettings();
+  const nextIdx = state.currentFileIndex + 1;
+  if (nextIdx < state.files.length) {
+    state.currentFileIndex = nextIdx;
+    loadCurrentFile(() => goStep('crop'));
+  } else {
+    goStep('metadata');
+  }
 }
 
 function loadCurrentFile(cb) {
@@ -589,10 +605,11 @@ function setupCropCanvas() {
 }
 
 function initCropView() {
-  const video = document.getElementById('videoEl');
   drawCropFrame();
   if (state.animFrame) cancelAnimationFrame(state.animFrame);
   renderPresets();
+  const prog = document.getElementById('cropFileProgress');
+  if (prog) prog.textContent = state.files.length > 1 ? `(clip ${state.currentFileIndex + 1} of ${state.files.length})` : '';
 }
 
 function drawCropFrame() {
@@ -735,6 +752,15 @@ function initCoverView() {
   state.isPlaying = false;
   renderPresets();
   drawCoverFrame();
+  const n = state.files.length;
+  const i = state.currentFileIndex;
+  const prog = document.getElementById('coverFileProgress');
+  if (prog) prog.textContent = n > 1 ? `(clip ${i + 1} of ${n})` : '';
+  const btn = document.getElementById('coverNextBtn');
+  if (btn) {
+    const isLast = i >= n - 1;
+    btn.textContent = isLast ? 'All clips configured — Continue →' : `Save & next clip (${i + 1}/${n}) →`;
+  }
 }
 
 function drawCoverFrame(previewPos) {
@@ -850,24 +876,21 @@ function clearCovers() { state.covers = []; drawCoverFrame(); }
 // ═══════════════════════════════════════════
 function initMetadataView() {
   const video = document.getElementById('videoEl');
-  const file = state.files[state.currentFileIndex];
+  // Use first file for metadata display; rename field is the base name for all exports
+  const file = state.files[0];
+  const n = state.files.length;
 
-  // Check for audio
-  const hasAudio = video.mozHasAudio || video.webkitAudioDecodedByteCount > 0 || (video.audioTracks && video.audioTracks.length > 0) || true; // Default assume audio exists
   const aw = document.getElementById('audioWarning');
-  aw.classList.toggle('hidden', false); // Always show for safety
+  aw.classList.toggle('hidden', false);
   state.stripAudio = true;
   updateAudioToggle();
 
-  // Simulated metadata display
   const metaList = document.getElementById('metaList');
   const items = [
-    ['File name', file.name],
-    ['File size', formatBytes(file.size)],
-    ['Last modified', file.lastModified ? new Date(file.lastModified).toLocaleString() : 'Unknown'],
-    ['Type', file.type],
+    ['Files queued', n > 1 ? `${n} clips` : file.name],
+    ['Total size', formatBytes(state.files.reduce((s, f) => s + f.size, 0))],
     ['Resolution', `${video.videoWidth} × ${video.videoHeight}`],
-    ['Duration', fmtTime(video.duration)],
+    ['Duration', fmtTime(video.duration) + (n > 1 ? ' (first clip)' : '')],
     ['EXIF data', 'Will be stripped'],
     ['DICOM tags', 'Will be stripped'],
     ['GPS / Location', 'Will be stripped'],
@@ -878,9 +901,13 @@ function initMetadataView() {
     return `<div class="meta-row"><span class="mk">${k}</span><span class="mv${isStrip ? ' stripped' : ''}">${v}</span></div>`;
   }).join('');
 
-  // Rename
+  // Rename — becomes the base name (batch: base_001_clean.mp4, base_002_clean.mp4, …)
   const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
   document.getElementById('renameInput').value = base || 'ultrasound_clip';
+  document.querySelector('.rename-field label').textContent = n > 1 ? 'Output base name (all clips)' : 'Output filename';
+  document.querySelector('.rename-field p').innerHTML = n > 1
+    ? `Files will be named <span class="mono">base_001_clean.mp4</span>, <span class="mono">base_002_clean.mp4</span>, …`
+    : `The suffix <span class="mono">_clean.mp4</span> will be added automatically.`;
 }
 
 function toggleAudio() {
@@ -980,19 +1007,19 @@ function toggleCheck(id) {
 // STEP 6: EXPORT
 // ═══════════════════════════════════════════
 function initExportView() {
-  const name = document.getElementById('renameInput').value || 'ultrasound_clip';
+  const base = document.getElementById('renameInput').value || 'ultrasound_clip';
+  const n = state.files.length;
   const mp4Ok = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') || MediaRecorder.isTypeSupported('video/mp4');
-  document.getElementById('exportFilename').textContent = name + (mp4Ok ? '_clean.mp4' : '_clean.webm');
-
-  // Show batch controls if multiple files
-  const batchSection = document.getElementById('batchNextSection');
-  const remaining = state.files.length - state.currentFileIndex - 1;
-  if (remaining > 0) {
-    batchSection.classList.remove('hidden');
-    document.getElementById('batchRemainingText').textContent = `${remaining} more clip${remaining > 1 ? 's' : ''} in queue`;
-  } else {
-    batchSection.classList.add('hidden');
-  }
+  const ext = mp4Ok ? 'mp4' : 'webm';
+  document.getElementById('exportTitle').textContent = n > 1 ? `Export ${n} Clean Clips` : 'Export Clean Clip';
+  document.getElementById('exportFilename').textContent = n > 1
+    ? `${base}_001_clean.${ext} … ${base}_${String(n).padStart(3,'0')}_clean.${ext}`
+    : `${base}_clean.${ext}`;
+  document.getElementById('exportBtn').textContent = n > 1 ? `⬇ Download All ${n} Clips` : '⬇ Download Clean MP4';
+  document.getElementById('exportProgress').classList.add('hidden');
+  document.getElementById('exportProgressText').classList.add('hidden');
+  document.getElementById('exportErrorBox').classList.add('hidden');
+  document.getElementById('exportFill').style.width = '0%';
 }
 
 function setExportRes(el) {
@@ -1001,45 +1028,97 @@ function setExportRes(el) {
   state.exportRes = el.dataset.res;
 }
 
+// Seek helper — avoids the onseeked assignment race condition
+function seekTo(video, time) {
+  return new Promise(resolve => {
+    if (Math.abs(video.currentTime - time) < 0.001) { resolve(); return; }
+    const onSeeked = () => { video.removeEventListener('seeked', onSeeked); clearTimeout(t); resolve(); };
+    const t = setTimeout(() => { video.removeEventListener('seeked', onSeeked); resolve(); }, 500);
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = time;
+  });
+}
+
 async function doExport() {
-  const video = document.getElementById('videoEl');
   const progressBar = document.getElementById('exportProgress');
   const progressFill = document.getElementById('exportFill');
   const progressText = document.getElementById('exportProgressText');
   const exportBtn = document.getElementById('exportBtn');
+  const errorBox = document.getElementById('exportErrorBox');
 
   progressBar.classList.remove('hidden');
   progressText.classList.remove('hidden');
+  errorBox.classList.add('hidden');
   exportBtn.disabled = true;
   exportBtn.textContent = 'Rendering…';
 
-  const vw = video.videoWidth, vh = video.videoHeight;
-  let sx=0, sy=0, sw=vw, sh=vh;
-  if (state.crop) { sx=state.crop.x; sy=state.crop.y; sw=state.crop.w; sh=state.crop.h; }
+  const base = document.getElementById('renameInput').value || 'ultrasound_clip';
+  const totalFiles = state.files.length;
+  const errors = [];
 
-  // Output dimensions
+  for (let fileIdx = 0; fileIdx < totalFiles; fileIdx++) {
+    progressText.textContent = `Loading clip ${fileIdx + 1} / ${totalFiles}…`;
+    try {
+      await renderAndDownload(fileIdx, base, totalFiles, progressFill, progressText);
+    } catch (err) {
+      const msg = `Clip ${fileIdx + 1} (${state.files[fileIdx].name}): ${err.message}`;
+      errors.push(msg);
+      console.error('[UltraClean export]', msg, err);
+    }
+  }
+
+  progressFill.style.width = '100%';
+  if (errors.length) {
+    progressText.textContent = `${totalFiles - errors.length} / ${totalFiles} clips exported (${errors.length} failed — see below)`;
+    errorBox.innerHTML = errors.map(e => `<div>⚠ ${e}</div>`).join('');
+    errorBox.classList.remove('hidden');
+    exportBtn.textContent = 'Retry';
+  } else {
+    progressText.textContent = totalFiles > 1 ? `All ${totalFiles} clips exported` : 'Export complete';
+    exportBtn.textContent = totalFiles > 1 ? `✓ All ${totalFiles} downloaded` : '✓ Downloaded';
+  }
+  exportBtn.disabled = false;
+  exportBtn.onclick = doExport;
+}
+
+async function renderAndDownload(fileIdx, base, totalFiles, progressFill, progressText) {
+  const file = state.files[fileIdx];
+  const settings = state.fileSettings[fileIdx] || { crop: null, covers: [] };
+  const crop = settings.crop;
+  const covers = settings.covers || [];
+
+  // Load the file into the video element
+  const video = document.getElementById('videoEl');
+  if (video._exportURL) { URL.revokeObjectURL(video._exportURL); video._exportURL = null; }
+  await new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    video._exportURL = url;
+    video.onerror = () => reject(new Error('Browser could not decode the video file'));
+    video.onloadedmetadata = resolve;
+    video.src = url;
+    video.load();
+  });
+
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) throw new Error('Video has zero dimensions');
+  const dur = video.duration;
+  if (!dur || !isFinite(dur)) throw new Error('Video has no valid duration');
+
+  let sx = 0, sy = 0, sw = vw, sh = vh;
+  if (crop) { sx = crop.x; sy = crop.y; sw = crop.w; sh = crop.h; }
+  if (!sw || !sh) throw new Error('Crop region is zero-sized');
+
   let outW = sw, outH = sh;
-  if (state.exportRes === '1080') { const s = 1080/sh; outW = Math.round(sw*s); outH = 1080; }
-  else if (state.exportRes === '720') { const s = 720/sh; outW = Math.round(sw*s); outH = 720; }
-  // Make even
-  outW = outW % 2 === 0 ? outW : outW + 1;
-  outH = outH % 2 === 0 ? outH : outH + 1;
+  if (state.exportRes === '1080') { const s = 1080 / sh; outW = Math.round(sw * s); outH = 1080; }
+  else if (state.exportRes === '720') { const s = 720 / sh; outW = Math.round(sw * s); outH = 720; }
+  outW += outW % 2; outH += outH % 2;
 
   const offCanvas = document.createElement('canvas');
-  offCanvas.width = outW;
-  offCanvas.height = outH;
+  offCanvas.width = outW; offCanvas.height = outH;
   const octx = offCanvas.getContext('2d');
 
   const fps = 30;
-  const duration = video.duration;
-  const totalFrames = Math.ceil(duration * fps);
-
-  // Use MediaRecorder with canvas stream
-  const stream = offCanvas.captureStream(fps);
-
-  // Add audio if not stripping
-  // (Note: adding audio from video to canvas stream requires complex AudioContext routing.
-  //  For the PWA version we always strip audio from the canvas export, which is the safe default.)
+  const totalFrames = Math.ceil(dur * fps);
 
   let mimeType = 'video/mp4;codecs=avc1';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
@@ -1047,80 +1126,68 @@ async function doExport() {
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
 
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 5000000 });
+  if (!('captureStream' in offCanvas)) throw new Error('captureStream not supported in this browser');
+
+  const stream = offCanvas.captureStream(fps);
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
   const chunks = [];
   recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-  const exportDone = new Promise(resolve => {
-    recorder.onstop = () => resolve();
+  const recordingDone = new Promise((resolve, reject) => {
+    recorder.onstop = resolve;
+    recorder.onerror = e => reject(new Error('MediaRecorder: ' + (e.error?.message || 'unknown error')));
   });
 
   recorder.start();
-  video.currentTime = 0;
+  await seekTo(video, 0);
 
-  // Render frame by frame
   for (let i = 0; i < totalFrames; i++) {
-    video.currentTime = i / fps;
-    await new Promise(r => { video.onseeked = r; setTimeout(r, 100); });
+    await seekTo(video, i / fps);
 
     octx.clearRect(0, 0, outW, outH);
     octx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
 
-    // Draw covers
-    const coverScale = outW / sw;
-    state.covers.forEach(c => {
-      const cx = (c.x - sx) * coverScale;
-      const cy = (c.y - sy) * coverScale;
-      const cs = c.size * coverScale;
+    const cs = outW / sw;
+    covers.forEach(c => {
+      const cx = (c.x - sx) * cs, cy = (c.y - sy) * cs, r = c.size * cs;
       octx.globalAlpha = c.opacity;
       octx.fillStyle = c.color;
-      if (c.shape === 'circle') {
-        octx.beginPath(); octx.arc(cx, cy, cs, 0, Math.PI*2); octx.fill();
-      } else if (c.shape === 'rect') {
-        octx.fillRect(cx-cs, cy-cs, cs*2, cs*2);
-      } else {
-        roundRect(octx, cx-cs, cy-cs, cs*2, cs*2, cs*0.3); octx.fill();
-      }
+      if (c.shape === 'circle') { octx.beginPath(); octx.arc(cx, cy, r, 0, Math.PI * 2); octx.fill(); }
+      else if (c.shape === 'rect') { octx.fillRect(cx - r, cy - r, r * 2, r * 2); }
+      else { roundRect(octx, cx - r, cy - r, r * 2, r * 2, r * 0.3); octx.fill(); }
       octx.globalAlpha = 1;
     });
 
-    const pct = Math.round(((i+1) / totalFrames) * 100);
+    // Map this file's frame progress onto its slice of the overall progress bar
+    const sliceStart = fileIdx / totalFiles, sliceEnd = (fileIdx + 1) / totalFiles;
+    const pct = Math.round((sliceStart + ((i + 1) / totalFrames) * (sliceEnd - sliceStart)) * 100);
     progressFill.style.width = pct + '%';
-    progressText.textContent = `Rendering frame ${i+1} / ${totalFrames} (${pct}%)`;
+    progressText.textContent = `Clip ${fileIdx + 1}/${totalFiles} · frame ${i + 1}/${totalFrames} (${pct}%)`;
 
-    // Yield to keep UI responsive
-    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+    if (i % 10 === 0) await new Promise(r => setTimeout(r, 0)); // yield to UI
   }
 
   recorder.stop();
-  await exportDone;
+  await recordingDone;
+
+  if (video._exportURL) { URL.revokeObjectURL(video._exportURL); video._exportURL = null; }
+
+  if (!chunks.length) throw new Error('MediaRecorder produced no data — format may be unsupported');
 
   const blob = new Blob(chunks, { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
   const ext = mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
-  const name = (document.getElementById('renameInput').value || 'ultrasound_clip') + '_clean.' + ext;
-  a.href = url;
-  a.download = name;
+  const suffix = totalFiles > 1 ? `_${String(fileIdx + 1).padStart(3, '0')}` : '';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${base}${suffix}_clean.${ext}`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
-
-  progressFill.style.width = '100%';
-  progressText.textContent = 'Export complete — download started';
-  exportBtn.textContent = '✓ Downloaded';
-  exportBtn.disabled = false;
-  exportBtn.onclick = () => { a.click(); };
-}
-
-function processNextBatch() {
-  state.currentFileIndex++;
-  if (state.currentFileIndex < state.files.length) {
-    loadCurrentFile(() => goStep('crop'));
-  }
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
 
 function resetApp() {
   state.files = [];
+  state.fileSettings = [];
   state.currentFileIndex = 0;
   state.crop = null;
   state.covers = [];
