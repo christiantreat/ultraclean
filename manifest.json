@@ -1,0 +1,23 @@
+{
+  "name": "UltraClean",
+  "short_name": "UltraClean",
+  "description": "De-identify ultrasound clips entirely in your browser. Crop PHI, cover logos, strip metadata, export clean video.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "orientation": "any",
+  "categories": ["medical", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
