@@ -44,24 +44,24 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 
 /* ── App Shell ── */
 .app{display:flex;flex-direction:column;min-height:100vh;}
-.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(–border);background:var(–surface);position:sticky;top:0;z-index:100;}
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;}
 .app-logo{font-family:‘Fraunces’,serif;font-weight:700;font-size:20px;color:#fff;letter-spacing:-0.02em;}
-.app-logo span{color:var(–accent);}
-.privacy-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:‘JetBrains Mono’,monospace;letter-spacing:0.04em;color:var(–accent);background:var(–accent-dim);border:1px solid rgba(62,207,142,0.15);padding:4px 10px;border-radius:20px;}
-.privacy-badge::before{content:’’;width:6px;height:6px;border-radius:50%;background:var(–accent);animation:pulse 2s infinite;}
+.app-logo span{color:var(--accent);}
+.privacy-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:‘JetBrains Mono’,monospace;letter-spacing:0.04em;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(62,207,142,0.15);padding:4px 10px;border-radius:20px;}
+.privacy-badge::before{content:’’;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* ── Step Progress ── */
-.step-bar{display:flex;align-items:center;justify-content:center;gap:4px;padding:16px 24px;background:var(–bg);border-bottom:1px solid var(–border);}
+.step-bar{display:flex;align-items:center;justify-content:center;gap:4px;padding:16px 24px;background:var(--bg);border-bottom:1px solid var(--border);}
 .step-pip{display:flex;align-items:center;gap:4px;}
-.step-pip .num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:‘JetBrains Mono’,monospace;font-size:11px;font-weight:500;border:1.5px solid var(–border);color:var(–text-muted);transition:all 0.3s ease;}
-.step-pip.active .num{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);box-shadow:0 0 12px var(–accent-glow);}
-.step-pip.done .num{border-color:var(–accent);background:var(–accent);color:var(–bg);font-size:13px;}
-.step-pip .label{font-size:11.5px;color:var(–text-muted);font-weight:500;transition:color 0.3s;}
-.step-pip.active .label{color:var(–text);}
-.step-pip.done .label{color:var(–accent);}
-.step-connector{width:24px;height:1px;background:var(–border);margin:0 2px;transition:background 0.3s;}
-.step-connector.done{background:var(–accent);}
+.step-pip .num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:‘JetBrains Mono’,monospace;font-size:11px;font-weight:500;border:1.5px solid var(--border);color:var(--text-muted);transition:all 0.3s ease;}
+.step-pip.active .num{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);box-shadow:0 0 12px var(--accent-glow);}
+.step-pip.done .num{border-color:var(--accent);background:var(--accent);color:var(--bg);font-size:13px;}
+.step-pip .label{font-size:11.5px;color:var(--text-muted);font-weight:500;transition:color 0.3s;}
+.step-pip.active .label{color:var(--text);}
+.step-pip.done .label{color:var(--accent);}
+.step-connector{width:24px;height:1px;background:var(--border);margin:0 2px;transition:background 0.3s;}
+.step-connector.done{background:var(--accent);}
 
 /* ── Main Content ── */
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
@@ -70,55 +70,55 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── Import Step ── */
-.drop-zone{border:2px dashed var(–border);border-radius:var(–radius-lg);padding:64px 40px;text-align:center;transition:all 0.3s ease;cursor:pointer;position:relative;overflow:hidden;}
-.drop-zone:hover,.drop-zone.dragover{border-color:var(–accent);background:var(–accent-dim);}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:64px 40px;text-align:center;transition:all 0.3s ease;cursor:pointer;position:relative;overflow:hidden;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-dim);}
 .drop-zone .icon{font-size:48px;margin-bottom:16px;opacity:0.6;}
 .drop-zone h3{font-size:18px;font-weight:600;color:#fff;margin-bottom:6px;}
-.drop-zone p{color:var(–text-dim);font-size:13px;}
-.drop-zone .formats{margin-top:12px;font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);}
-.file-info{display:flex;align-items:center;gap:16px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:16px 20px;margin-top:16px;}
+.drop-zone p{color:var(--text-dim);font-size:13px;}
+.drop-zone .formats{margin-top:12px;font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(--text-muted);}
+.file-info{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-top:16px;}
 .file-info .fi-icon{font-size:28px;}
 .file-info .fi-details{flex:1;}
 .file-info .fi-name{font-weight:600;color:#fff;font-size:13px;}
-.file-info .fi-meta{font-size:12px;color:var(–text-muted);margin-top:2px;}
-.file-info .fi-remove{color:var(–red);font-size:18px;padding:4px 8px;border-radius:var(–radius-sm);transition:background var(–transition);}
-.file-info .fi-remove:hover{background:var(–red-dim);}
+.file-info .fi-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.file-info .fi-remove{color:var(--red);font-size:18px;padding:4px 8px;border-radius:var(--radius-sm);transition:background var(--transition);}
+.file-info .fi-remove:hover{background:var(--red-dim);}
 
 /* ── Batch list ── */
 .batch-list{margin-top:16px;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;}
-.batch-item{display:flex;align-items:center;gap:12px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:10px 14px;font-size:13px;}
-.batch-item.processing{border-color:var(–accent);background:var(–accent-dim);}
-.batch-item.completed{border-color:var(–accent);opacity:0.7;}
-.batch-item .bi-name{flex:1;font-weight:500;color:var(–text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.batch-item .bi-status{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);}
-.batch-item .bi-remove{color:var(–red);font-size:16px;padding:2px 6px;border-radius:4px;transition:background var(–transition);}
-.batch-item .bi-remove:hover{background:var(–red-dim);}
+.batch-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;}
+.batch-item.processing{border-color:var(--accent);background:var(--accent-dim);}
+.batch-item.completed{border-color:var(--accent);opacity:0.7;}
+.batch-item .bi-name{flex:1;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.batch-item .bi-status{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(--text-muted);}
+.batch-item .bi-remove{color:var(--red);font-size:16px;padding:2px 6px;border-radius:4px;transition:background var(--transition);}
+.batch-item .bi-remove:hover{background:var(--red-dim);}
 
 /* ── Canvas Area (Crop & Cover) ── */
-.canvas-area{position:relative;background:#000;border-radius:var(–radius);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:400px;}
+.canvas-area{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:400px;}
 .canvas-area canvas{display:block;max-width:100%;max-height:60vh;cursor:crosshair;}
 .canvas-area video{display:none;}
 
 /* ── Controls Panel ── */
 .controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;align-items:center;}
-.ctrl-group{display:flex;align-items:center;gap:8px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:6px 12px;}
-.ctrl-group label{font-size:12px;color:var(–text-muted);font-weight:500;white-space:nowrap;}
-.ctrl-group input[type=“range”]{width:80px;accent-color:var(–accent);}
+.ctrl-group{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;}
+.ctrl-group label{font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;}
+.ctrl-group input[type=“range”]{width:80px;accent-color:var(--accent);}
 .ctrl-group input[type=“color”]{width:28px;height:28px;border:none;border-radius:4px;cursor:pointer;background:none;}
 
 /* ── Scrubber ── */
 .scrubber{width:100%;margin-top:12px;display:flex;align-items:center;gap:12px;}
-.scrubber input[type=“range”]{flex:1;accent-color:var(–accent);}
-.scrubber .time{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(–text-muted);min-width:70px;}
+.scrubber input[type=“range”]{flex:1;accent-color:var(--accent);}
+.scrubber .time{font-family:‘JetBrains Mono’,monospace;font-size:11px;color:var(--text-muted);min-width:70px;}
 
 /* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(–radius-sm);font-weight:600;font-size:13px;transition:all var(–transition);}
-.btn-primary{background:var(–accent);color:var(–bg);}
-.btn-primary:hover{background:var(–accent-hover);box-shadow:0 0 20px var(–accent-glow);}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-weight:600;font-size:13px;transition:all var(--transition);}
+.btn-primary{background:var(--accent);color:var(--bg);}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 0 20px var(--accent-glow);}
 .btn-primary:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
-.btn-secondary{background:var(–surface-2);color:var(–text);border:1px solid var(–border);}
-.btn-secondary:hover{border-color:var(–border-hover);background:var(–surface-3);}
-.btn-danger{background:var(–red-dim);color:var(–red);border:1px solid rgba(239,100,97,0.2);}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--border-hover);background:var(--surface-3);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,100,97,0.2);}
 .btn-danger:hover{background:rgba(239,100,97,0.18);}
 .btn-sm{padding:6px 14px;font-size:12px;}
 .btn-row{display:flex;gap:10px;margin-top:20px;justify-content:space-between;align-items:center;}
@@ -126,56 +126,56 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 
 /* ── Presets ── */
 .preset-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-.preset-chip{font-size:12px;padding:5px 12px;border-radius:20px;background:var(–surface-2);border:1px solid var(–border);color:var(–text-dim);transition:all var(–transition);cursor:pointer;}
-.preset-chip:hover{border-color:var(–accent);color:var(–accent);}
-.preset-chip.active{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);}
+.preset-chip{font-size:12px;padding:5px 12px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);transition:all var(--transition);cursor:pointer;}
+.preset-chip:hover{border-color:var(--accent);color:var(--accent);}
+.preset-chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
 
 /* ── Metadata Step ── */
-.meta-strip{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:20px;margin-bottom:16px;}
+.meta-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
 .meta-strip h4{font-size:14px;font-weight:600;color:#fff;margin-bottom:12px;}
-.meta-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(–border);font-size:13px;}
+.meta-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
 .meta-row:last-child{border-bottom:none;}
-.meta-row .mk{color:var(–text-muted);font-family:‘JetBrains Mono’,monospace;font-size:12px;}
-.meta-row .mv{color:var(–text-dim);}
-.meta-row .mv.stripped{color:var(–red);text-decoration:line-through;opacity:0.6;}
+.meta-row .mk{color:var(--text-muted);font-family:‘JetBrains Mono’,monospace;font-size:12px;}
+.meta-row .mv{color:var(--text-dim);}
+.meta-row .mv.stripped{color:var(--red);text-decoration:line-through;opacity:0.6;}
 .rename-field{margin-top:16px;}
-.rename-field label{display:block;font-size:13px;font-weight:500;color:var(–text-dim);margin-bottom:6px;}
+.rename-field label{display:block;font-size:13px;font-weight:500;color:var(--text-dim);margin-bottom:6px;}
 .rename-field input{width:100%;max-width:400px;}
 
 /* ── Audio Warning ── */
-.audio-warning{background:var(–warn-dim);border:1px solid rgba(240,178,50,0.2);border-radius:var(–radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;}
+.audio-warning{background:var(--warn-dim);border:1px solid rgba(240,178,50,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;}
 .audio-warning .aw-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
-.audio-warning .aw-text{flex:1;font-size:13px;color:var(–warn);line-height:1.55;}
+.audio-warning .aw-text{flex:1;font-size:13px;color:var(--warn);line-height:1.55;}
 .audio-warning .aw-text strong{display:block;margin-bottom:4px;font-size:14px;}
 .audio-toggle{display:flex;align-items:center;gap:10px;margin-top:10px;}
-.toggle{position:relative;width:40px;height:22px;border-radius:11px;background:var(–surface-3);border:1px solid var(–border);cursor:pointer;transition:all var(–transition);}
-.toggle.on{background:var(–accent);border-color:var(–accent);}
-.toggle::after{content:’’;position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform var(–transition);}
+.toggle{position:relative;width:40px;height:22px;border-radius:11px;background:var(--surface-3);border:1px solid var(--border);cursor:pointer;transition:all var(--transition);}
+.toggle.on{background:var(--accent);border-color:var(--accent);}
+.toggle::after{content:’’;position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform var(--transition);}
 .toggle.on::after{transform:translateX(18px);}
 
 /* ── Review Checklist ── */
 .checklist{display:flex;flex-direction:column;gap:8px;margin:20px 0;}
-.check-item{display:flex;align-items:center;gap:12px;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-sm);padding:12px 16px;cursor:pointer;transition:all var(–transition);user-select:none;}
-.check-item:hover{border-color:var(–border-hover);}
-.check-item.checked{border-color:var(–accent);background:var(–accent-dim);}
-.check-box{width:20px;height:20px;border-radius:4px;border:1.5px solid var(–border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(–transition);font-size:12px;color:transparent;}
-.check-item.checked .check-box{border-color:var(–accent);background:var(–accent);color:var(–bg);}
-.check-text{font-size:13px;color:var(–text-dim);flex:1;}
-.check-item.checked .check-text{color:var(–accent);}
-.check-goto{font-size:11px;color:var(–text-muted);padding:4px 8px;border-radius:4px;transition:all var(–transition);font-weight:500;}
-.check-goto:hover{background:var(–surface-3);color:var(–text);}
+.check-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;cursor:pointer;transition:all var(--transition);user-select:none;}
+.check-item:hover{border-color:var(--border-hover);}
+.check-item.checked{border-color:var(--accent);background:var(--accent-dim);}
+.check-box{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--transition);font-size:12px;color:transparent;}
+.check-item.checked .check-box{border-color:var(--accent);background:var(--accent);color:var(--bg);}
+.check-text{font-size:13px;color:var(--text-dim);flex:1;}
+.check-item.checked .check-text{color:var(--accent);}
+.check-goto{font-size:11px;color:var(--text-muted);padding:4px 8px;border-radius:4px;transition:all var(--transition);font-weight:500;}
+.check-goto:hover{background:var(--surface-3);color:var(--text);}
 
 /* ── Export Step ── */
-.export-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius-lg);padding:32px;text-align:center;}
+.export-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;text-align:center;}
 .export-card h3{font-family:‘Fraunces’,serif;font-size:24px;color:#fff;margin-bottom:8px;}
-.export-card p{color:var(–text-dim);font-size:14px;margin-bottom:24px;}
+.export-card p{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
 .export-options{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;}
-.export-opt{background:var(–surface-2);border:1px solid var(–border);border-radius:var(–radius-sm);padding:10px 18px;font-size:13px;color:var(–text-dim);transition:all var(–transition);cursor:pointer;}
-.export-opt:hover{border-color:var(–border-hover);}
-.export-opt.active{border-color:var(–accent);color:var(–accent);background:var(–accent-dim);}
-.progress-bar{width:100%;height:6px;background:var(–surface-3);border-radius:3px;overflow:hidden;margin:20px 0;}
-.progress-bar .fill{height:100%;background:var(–accent);border-radius:3px;transition:width 0.3s ease;width:0%;}
-.progress-text{font-family:‘JetBrains Mono’,monospace;font-size:12px;color:var(–text-muted);margin-top:8px;}
+.export-opt{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;color:var(--text-dim);transition:all var(--transition);cursor:pointer;}
+.export-opt:hover{border-color:var(--border-hover);}
+.export-opt.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.progress-bar{width:100%;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin:20px 0;}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s ease;width:0%;}
+.progress-text{font-family:‘JetBrains Mono’,monospace;font-size:12px;color:var(--text-muted);margin-top:8px;}
 
 /* ── Responsive ── */
 @media(max-width:700px){
@@ -195,8 +195,8 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 .mt-sm{margin-top:8px;}
 .mt-md{margin-top:16px;}
 .text-center{text-align:center;}
-.text-muted{color:var(–text-muted);}
-.text-accent{color:var(–accent);}
+.text-muted{color:var(--text-muted);}
+.text-accent{color:var(--accent);}
 .mono{font-family:‘JetBrains Mono’,monospace;}
 
 /* ── MP4 → GIF Modal ── */
@@ -281,7 +281,7 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
     <input type="range" id="scrubber" min="0" max="100" value="0" step="0.1">
     <button class="btn btn-sm btn-secondary" id="playBtn" onclick="togglePlay()">▶ Play</button>
   </div>
-  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click and drag on the video to set crop area. The dimmed region will be removed.</p>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click and drag on the video to set crop area. The dimmed region will be removed. <span id="cropFileProgress" style="color:var(--accent);font-weight:600;"></span></p>
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="goStep('import')">← Back</button>
     <div class="btn-row-right">
@@ -293,6 +293,7 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 
 <!-- STEP 3: Cover -->
 <section class="step-view" id="step-cover">
+  <div class="preset-bar" id="presetBarCover"></div>
   <div class="controls">
     <div class="ctrl-group">
       <label>Shape</label>
@@ -321,10 +322,10 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
   <div class="canvas-area mt-md" id="coverCanvasArea">
     <canvas id="coverCanvas"></canvas>
   </div>
-  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click on the video to place cover shapes over probe markers and logos. Scroll to resize before placing.</p>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Click on the video to place cover shapes over probe markers and logos. Scroll to resize before placing. <span id="coverFileProgress" style="color:var(--accent);font-weight:600;"></span></p>
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="goStep('crop')">← Back</button>
-    <button class="btn btn-primary" onclick="goStep('metadata')">Continue →</button>
+    <button class="btn btn-primary" id="coverNextBtn" onclick="gotoNextFileOrMetadata()">Continue →</button>
   </div>
 </section>
 
@@ -367,39 +368,52 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
     <input type="range" id="reviewScrubber" min="0" max="100" value="0" step="0.1">
     <button class="btn btn-sm btn-secondary" id="reviewPlayBtn" onclick="toggleReviewPlay()">▶ Play</button>
   </div>
-  <h4 style="margin-top:20px;font-size:15px;color:#fff;">De-identification Checklist</h4>
-  <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;">Confirm each item before exporting. Click an item to check it off.</p>
-  <div class="checklist" id="checklist"></div>
-  <div class="btn-row">
+  <div class="btn-row" style="margin-top:20px;">
     <button class="btn btn-secondary" onclick="goStep('metadata')">← Back</button>
-    <button class="btn btn-primary" id="reviewNextBtn" disabled onclick="goStep('export')">All items confirmed — Export →</button>
+    <button class="btn btn-primary" onclick="goStep('export')">Export →</button>
   </div>
 </section>
 
 <!-- STEP 6: Export -->
 <section class="step-view" id="step-export">
   <div class="export-card">
-    <h3>Export Clean Clip</h3>
-    <p id="exportFilename">ultrasound_clip_001_clean.mp4</p>
-    <div class="export-options">
-      <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
-      <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
-      <div class="export-opt" data-res="720" onclick="setExportRes(this)">720p</div>
-    </div>
-    <button class="btn btn-primary" id="exportBtn" onclick="doExport()" style="font-size:15px;padding:14px 36px;">
-      ⬇ Download Clean MP4
-    </button>
-    <div class="progress-bar hidden" id="exportProgress"><div class="fill" id="exportFill"></div></div>
-    <div class="progress-text hidden" id="exportProgressText">Rendering frames…</div>
 
-    <div id="batchNextSection" class="hidden" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-      <p style="color:var(--text-dim);font-size:14px;margin-bottom:12px;" id="batchRemainingText"></p>
-      <button class="btn btn-primary" onclick="processNextBatch()">Process next clip →</button>
+    <!-- ── Ready state ── -->
+    <div id="exportReadyState">
+      <h3 id="exportTitle">Export Clean Clip</h3>
+      <p id="exportFilename" style="font-family:'JetBrains Mono',monospace;font-size:12px;"></p>
+      <div class="export-options">
+        <div class="export-opt active" data-res="original" onclick="setExportRes(this)">Original resolution</div>
+        <div class="export-opt" data-res="1080" onclick="setExportRes(this)">1080p</div>
+        <div class="export-opt" data-res="720" onclick="setExportRes(this)">720p</div>
+      </div>
+      <button class="btn btn-primary" id="exportBtn" onclick="doExport()" style="font-size:15px;padding:14px 36px;">
+        ⬇ Download Clean MP4
+      </button>
     </div>
 
-    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-      <button class="btn btn-secondary" onclick="resetApp()">↻ Start over</button>
+    <!-- ── Processing state ── -->
+    <div id="exportProcessingState" class="hidden">
+      <h3 style="margin-bottom:8px;">Exporting…</h3>
+      <p id="exportProcessingDesc" style="color:var(--text-dim);font-size:14px;margin-bottom:28px;"></p>
+      <div class="progress-bar" id="exportProgress" style="margin-top:0;"><div class="fill" id="exportFill"></div></div>
+      <div class="progress-text" id="exportProgressText" style="margin-top:12px;">Preparing…</div>
     </div>
+
+    <!-- ── Done state ── -->
+    <div id="exportDoneState" class="hidden">
+      <div style="font-size:52px;margin-bottom:12px;">✓</div>
+      <h3 id="exportDoneTitle" style="margin-bottom:8px;">Export complete</h3>
+      <p id="exportDoneDesc" style="color:var(--text-dim);font-size:14px;margin-bottom:8px;"></p>
+      <div id="exportErrorBox" class="hidden" style="margin-bottom:20px;background:var(--red-dim);border:1px solid rgba(239,100,97,0.3);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--red);text-align:left;"></div>
+      <button class="btn btn-primary" onclick="resetApp()" style="font-size:15px;padding:14px 36px;">↻ Export a new batch</button>
+    </div>
+
+    <!-- ── Back button (ready state only) ── -->
+    <div id="exportBackRow" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+      <button class="btn btn-secondary" onclick="goStep('review')">← Back to Review</button>
+    </div>
+
   </div>
 </section>
 ```
@@ -466,17 +480,9 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 
 const STEPS = ['import','crop','cover','metadata','review','export'];
 const STEP_LABELS = ['Import','Crop PHI','Cover','Metadata','Review','Export'];
-const CHECKLIST_ITEMS = [
-  {id:'name', text:'Patient name is not visible', step:'crop'},
-  {id:'date', text:'Date / time stamps removed', step:'crop'},
-  {id:'inst', text:'Institution name removed', step:'crop'},
-  {id:'probe', text:'Probe marker / model covered', step:'cover'},
-  {id:'logo', text:'Manufacturer logo covered or removed', step:'cover'},
-  {id:'file', text:'File renamed to non-identifying name', step:'metadata'},
-];
-
 let state = {
   files: [],
+  fileSettings: [],  // [{crop, covers}] — saved per file after cover step
   currentFileIndex: 0,
   currentStep: 'import',
   videoEl: null,
@@ -485,7 +491,6 @@ let state = {
   stripAudio: true,
   exportRes: 'original',
   presets: [],
-  checkedItems: new Set(),
   isPlaying: false,
   animFrame: null,
   // Canvas state
@@ -504,9 +509,18 @@ function init() {
   setupCropCanvas();
   setupCoverCanvas();
   setupScrubbers();
-  renderChecklist();
+  setupKeyboardShortcuts();
   document.getElementById('coverOpacity').addEventListener('input', e => {
+
     document.getElementById('opacityVal').textContent = e.target.value + '%';
+  });
+  document.getElementById('renameInput').addEventListener('input', e => {
+    const pos = e.target.selectionStart;
+    const sanitized = e.target.value.replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (sanitized !== e.target.value) {
+      e.target.value = sanitized;
+      e.target.setSelectionRange(pos, pos);
+    }
   });
 }
 
@@ -591,21 +605,49 @@ function removeFile(idx) {
 function startProcessing() {
   if (!state.files.length) return;
   state.currentFileIndex = 0;
+  state.fileSettings = state.files.map(() => ({ crop: null, covers: [] }));
   loadCurrentFile(() => goStep('crop'));
+}
+
+function saveCurrentSettings() {
+  state.fileSettings[state.currentFileIndex] = {
+    crop: state.crop ? {...state.crop} : null,
+    covers: state.covers.map(c => ({...c})),
+  };
+}
+
+function gotoNextFileOrMetadata() {
+  saveCurrentSettings();
+  const nextIdx = state.currentFileIndex + 1;
+  if (nextIdx < state.files.length) {
+    state.currentFileIndex = nextIdx;
+    loadCurrentFile(() => goStep('crop'));
+  } else {
+    goStep('metadata');
+  }
 }
 
 function loadCurrentFile(cb) {
   const file = state.files[state.currentFileIndex];
   const video = document.getElementById('videoEl');
+  if (state._lastObjectURL) URL.revokeObjectURL(state._lastObjectURL);
   const url = URL.createObjectURL(file);
+  state._lastObjectURL = url;
   video.src = url;
+  video.onerror = () => {
+    alert(`Could not load "${file.name}". The file may be corrupted or an unsupported format.`);
+    removeFile(state.currentFileIndex);
+  };
   video.onloadedmetadata = () => {
-    video.currentTime = 0;
-    state.crop = null;
-    state.covers = [];
-    state.checkedItems = new Set();
-    state.stripAudio = true;
-    video.oncanplay = () => { if (cb) cb(); };
+    try {
+      video.currentTime = 0;
+      state.crop = null;
+      state.covers = [];
+      state.stripAudio = true;
+      video.oncanplay = () => { if (cb) cb(); };
+    } catch(err) {
+      alert(`Error preparing "${file.name}": ${err.message}`);
+    }
   };
 }
 
@@ -614,20 +656,20 @@ function loadCurrentFile(cb) {
 // ═══════════════════════════════════════════
 function setupCropCanvas() {
   const canvas = document.getElementById('cropCanvas');
+  // mousedown starts the drag; mousemove/mouseup are on document so dragging
+  // outside the canvas border doesn't drop the selection mid-drag.
   canvas.addEventListener('mousedown', cropMouseDown);
-  canvas.addEventListener('mousemove', cropMouseMove);
-  canvas.addEventListener('mouseup', cropMouseUp);
-  // Touch
   canvas.addEventListener('touchstart', e => { e.preventDefault(); cropMouseDown(touchToMouse(e)); });
-  canvas.addEventListener('touchmove', e => { e.preventDefault(); cropMouseMove(touchToMouse(e)); });
-  canvas.addEventListener('touchend', e => { e.preventDefault(); cropMouseUp(touchToMouse(e)); });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); cropMouseMove(touchToMouse(e)); });
+  canvas.addEventListener('touchend',   e => { e.preventDefault(); cropMouseUp(touchToMouse(e)); });
 }
 
 function initCropView() {
-  const video = document.getElementById('videoEl');
   drawCropFrame();
   if (state.animFrame) cancelAnimationFrame(state.animFrame);
   renderPresets();
+  const prog = document.getElementById('cropFileProgress');
+  if (prog) prog.textContent = state.files.length > 1 ? `(clip ${state.currentFileIndex + 1} of ${state.files.length})` : '';
 }
 
 function drawCropFrame() {
@@ -677,27 +719,31 @@ function cropMouseDown(e) {
   const y = (e.clientY - rect.top) / state.displayScale;
   state.cropDragging = true;
   state.cropStart = {x, y};
+  document.addEventListener('mousemove', cropMouseMove);
+  document.addEventListener('mouseup', cropMouseUp);
 }
 function cropMouseMove(e) {
   if (!state.cropDragging) return;
   const canvas = document.getElementById('cropCanvas');
   const rect = canvas.getBoundingClientRect();
   const video = document.getElementById('videoEl');
-  const x = (e.clientX - rect.left) / state.displayScale;
-  const y = (e.clientY - rect.top) / state.displayScale;
-  const sx = state.cropStart.x, sy = state.cropStart.y;
   const vw = video.videoWidth, vh = video.videoHeight;
+  const x = Math.max(0, Math.min((e.clientX - rect.left) / state.displayScale, vw));
+  const y = Math.max(0, Math.min((e.clientY - rect.top) / state.displayScale, vh));
+  const sx = state.cropStart.x, sy = state.cropStart.y;
   state.crop = {
-    x: Math.max(0, Math.min(sx, x)),
-    y: Math.max(0, Math.min(sy, y)),
-    w: Math.min(Math.abs(x - sx), vw),
-    h: Math.min(Math.abs(y - sy), vh),
+    x: Math.min(sx, x),
+    y: Math.min(sy, y),
+    w: Math.abs(x - sx),
+    h: Math.abs(y - sy),
   };
   drawCropFrame();
 }
 function cropMouseUp(e) {
+  if (!state.cropDragging) return;
   state.cropDragging = false;
-  // Clamp
+  document.removeEventListener('mousemove', cropMouseMove);
+  document.removeEventListener('mouseup', cropMouseUp);
   if (state.crop && (state.crop.w < 10 || state.crop.h < 10)) state.crop = null;
   drawCropFrame();
 }
@@ -768,7 +814,17 @@ function initCoverView() {
   const video = document.getElementById('videoEl');
   video.pause();
   state.isPlaying = false;
+  renderPresets();
   drawCoverFrame();
+  const n = state.files.length;
+  const i = state.currentFileIndex;
+  const prog = document.getElementById('coverFileProgress');
+  if (prog) prog.textContent = n > 1 ? `(clip ${i + 1} of ${n})` : '';
+  const btn = document.getElementById('coverNextBtn');
+  if (btn) {
+    const isLast = i >= n - 1;
+    btn.textContent = isLast ? 'All clips configured — Continue →' : `Save & next clip (${i + 1}/${n}) →`;
+  }
 }
 
 function drawCoverFrame(previewPos) {
@@ -884,24 +940,21 @@ function clearCovers() { state.covers = []; drawCoverFrame(); }
 // ═══════════════════════════════════════════
 function initMetadataView() {
   const video = document.getElementById('videoEl');
-  const file = state.files[state.currentFileIndex];
+  // Use first file for metadata display; rename field is the base name for all exports
+  const file = state.files[0];
+  const n = state.files.length;
 
-  // Check for audio
-  const hasAudio = video.mozHasAudio || video.webkitAudioDecodedByteCount > 0 || (video.audioTracks && video.audioTracks.length > 0) || true; // Default assume audio exists
   const aw = document.getElementById('audioWarning');
-  aw.classList.toggle('hidden', false); // Always show for safety
+  aw.classList.toggle('hidden', false);
   state.stripAudio = true;
   updateAudioToggle();
 
-  // Simulated metadata display
   const metaList = document.getElementById('metaList');
   const items = [
-    ['File name', file.name],
-    ['File size', formatBytes(file.size)],
-    ['Last modified', file.lastModified ? new Date(file.lastModified).toLocaleString() : 'Unknown'],
-    ['Type', file.type],
+    ['Files queued', n > 1 ? `${n} clips` : file.name],
+    ['Total size', formatBytes(state.files.reduce((s, f) => s + f.size, 0))],
     ['Resolution', `${video.videoWidth} × ${video.videoHeight}`],
-    ['Duration', fmtTime(video.duration)],
+    ['Duration', fmtTime(video.duration) + (n > 1 ? ' (first clip)' : '')],
     ['EXIF data', 'Will be stripped'],
     ['DICOM tags', 'Will be stripped'],
     ['GPS / Location', 'Will be stripped'],
@@ -912,9 +965,13 @@ function initMetadataView() {
     return `<div class="meta-row"><span class="mk">${k}</span><span class="mv${isStrip ? ' stripped' : ''}">${v}</span></div>`;
   }).join('');
 
-  // Rename
+  // Rename — becomes the base name (batch: base_001_clean.mp4, base_002_clean.mp4, …)
   const base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
   document.getElementById('renameInput').value = base || 'ultrasound_clip';
+  document.querySelector('.rename-field label').textContent = n > 1 ? 'Output base name (all clips)' : 'Output filename';
+  document.querySelector('.rename-field p').innerHTML = n > 1
+    ? `Files will be named <span class="mono">base_001_clean.mp4</span>, <span class="mono">base_002_clean.mp4</span>, …`
+    : `The suffix <span class="mono">_clean.mp4</span> will be added automatically.`;
 }
 
 function toggleAudio() {
@@ -934,7 +991,6 @@ function updateAudioToggle() {
 // ═══════════════════════════════════════════
 function initReviewView() {
   drawReviewFrame();
-  renderChecklist();
 }
 
 function drawReviewFrame() {
@@ -989,43 +1045,28 @@ function updateReviewTimeDisplay() {
   document.getElementById('reviewTimeDisplay').textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
 }
 
-function renderChecklist() {
-  const el = document.getElementById('checklist');
-  el.innerHTML = CHECKLIST_ITEMS.map(item => {
-    const checked = state.checkedItems.has(item.id);
-    return `<div class="check-item ${checked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')">
-      <div class="check-box">${checked ? '✓' : ''}</div>
-      <span class="check-text">${item.text}</span>
-      <button class="check-goto" onclick="event.stopPropagation(); goStep('${item.step}')">Edit →</button>
-    </div>`;
-  }).join('');
-  const allChecked = CHECKLIST_ITEMS.every(i => state.checkedItems.has(i.id));
-  document.getElementById('reviewNextBtn').disabled = !allChecked;
-  document.getElementById('reviewNextBtn').textContent = allChecked ? 'All confirmed — Export →' : `${state.checkedItems.size}/${CHECKLIST_ITEMS.length} confirmed`;
-}
-
-function toggleCheck(id) {
-  if (state.checkedItems.has(id)) state.checkedItems.delete(id);
-  else state.checkedItems.add(id);
-  renderChecklist();
-}
 
 // ═══════════════════════════════════════════
 // STEP 6: EXPORT
 // ═══════════════════════════════════════════
 function initExportView() {
-  const name = document.getElementById('renameInput').value || 'ultrasound_clip';
-  document.getElementById('exportFilename').textContent = name + '_clean.mp4';
+  // Reset to ready state
+  document.getElementById('exportReadyState').classList.remove('hidden');
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.remove('hidden');
+  document.getElementById('exportFill').style.width = '0%';
+  document.getElementById('exportProgressText').textContent = 'Preparing…';
 
-  // Show batch controls if multiple files
-  const batchSection = document.getElementById('batchNextSection');
-  const remaining = state.files.length - state.currentFileIndex - 1;
-  if (remaining > 0) {
-    batchSection.classList.remove('hidden');
-    document.getElementById('batchRemainingText').textContent = `${remaining} more clip${remaining > 1 ? 's' : ''} in queue`;
-  } else {
-    batchSection.classList.add('hidden');
-  }
+  const base = document.getElementById('renameInput').value || 'ultrasound_clip';
+  const n = state.files.length;
+  const mp4Ok = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') || MediaRecorder.isTypeSupported('video/mp4');
+  const ext = mp4Ok ? 'mp4' : 'webm';
+  document.getElementById('exportTitle').textContent = n > 1 ? `Export ${n} Clean Clips` : 'Export Clean Clip';
+  document.getElementById('exportFilename').textContent = n > 1
+    ? `${base}_001_clean.${ext} … ${base}_${String(n).padStart(3,'0')}_clean.${ext}`
+    : `${base}_clean.${ext}`;
+  document.getElementById('exportBtn').textContent = n > 1 ? `⬇ Download All ${n} Clips` : '⬇ Download Clean MP4';
 }
 
 function setExportRes(el) {
@@ -1034,135 +1075,194 @@ function setExportRes(el) {
   state.exportRes = el.dataset.res;
 }
 
+// Seek helper — avoids the onseeked assignment race condition
+function seekTo(video, time) {
+  return new Promise(resolve => {
+    if (Math.abs(video.currentTime - time) < 0.001) { resolve(); return; }
+    const onSeeked = () => { video.removeEventListener('seeked', onSeeked); clearTimeout(t); resolve(); };
+    const t = setTimeout(() => { video.removeEventListener('seeked', onSeeked); resolve(); }, 500);
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = time;
+  });
+}
+
 async function doExport() {
-  const video = document.getElementById('videoEl');
-  const progressBar = document.getElementById('exportProgress');
   const progressFill = document.getElementById('exportFill');
   const progressText = document.getElementById('exportProgressText');
-  const exportBtn = document.getElementById('exportBtn');
 
-  progressBar.classList.remove('hidden');
-  progressText.classList.remove('hidden');
-  exportBtn.disabled = true;
-  exportBtn.textContent = 'Rendering…';
+  // Switch to processing state — hides ready state and back button
+  document.getElementById('exportReadyState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportProcessingState').classList.remove('hidden');
+
+  const base = document.getElementById('renameInput').value || 'ultrasound_clip';
+  const totalFiles = state.files.length;
+  document.getElementById('exportProcessingDesc').textContent = totalFiles > 1
+    ? `Rendering and downloading ${totalFiles} clips. This may take a while — please keep this tab open.`
+    : 'Rendering and downloading your clip. Please keep this tab open.';
+
+  const errors = [];
+  for (let fileIdx = 0; fileIdx < totalFiles; fileIdx++) {
+    progressText.textContent = `Loading clip ${fileIdx + 1} / ${totalFiles}…`;
+    try {
+      await renderAndDownload(fileIdx, base, totalFiles, progressFill, progressText);
+    } catch (err) {
+      const msg = `Clip ${fileIdx + 1} (${state.files[fileIdx].name}): ${err.message}`;
+      errors.push(msg);
+      console.error('[UltraClean export]', msg, err);
+    }
+  }
+
+  progressFill.style.width = '100%';
+
+  // Switch to done state
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.remove('hidden');
+  const errorBox = document.getElementById('exportErrorBox');
+  if (errors.length) {
+    document.getElementById('exportDoneTitle').textContent =
+      errors.length === totalFiles ? 'Export failed' : `${totalFiles - errors.length} / ${totalFiles} clips exported`;
+    document.getElementById('exportDoneDesc').textContent = `${errors.length} clip(s) could not be exported.`;
+    errorBox.innerHTML = errors.map(e => `<div>⚠ ${e}</div>`).join('');
+    errorBox.classList.remove('hidden');
+  } else {
+    document.getElementById('exportDoneTitle').textContent =
+      totalFiles > 1 ? `All ${totalFiles} clips exported` : 'Export complete';
+    document.getElementById('exportDoneDesc').textContent =
+      totalFiles > 1 ? 'All files have been downloaded to your device.' : 'Your file has been downloaded.';
+    errorBox.classList.add('hidden');
+  }
+}
+
+async function renderAndDownload(fileIdx, base, totalFiles, progressFill, progressText) {
+  const file = state.files[fileIdx];
+  const settings = state.fileSettings[fileIdx] || { crop: null, covers: [] };
+  const crop = settings.crop;
+  const covers = settings.covers || [];
+
+  // Load the file into the video element.
+  // IMPORTANT: clear any handlers left by loadCurrentFile() (oncanplay in particular)
+  // otherwise the old callback fires again here and navigates back to the crop step.
+  const video = document.getElementById('videoEl');
+  video.oncanplay = null;
+  video.onloadedmetadata = null;
+  video.onerror = null;
+  if (video._exportURL) { URL.revokeObjectURL(video._exportURL); video._exportURL = null; }
+  await new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    video._exportURL = url;
+    video.onerror = () => reject(new Error('Browser could not decode the video file'));
+    video.onloadedmetadata = resolve;
+    video.src = url;
+    video.load();
+  });
 
   const vw = video.videoWidth, vh = video.videoHeight;
-  let sx=0, sy=0, sw=vw, sh=vh;
-  if (state.crop) { sx=state.crop.x; sy=state.crop.y; sw=state.crop.w; sh=state.crop.h; }
+  if (!vw || !vh) throw new Error('Video has zero dimensions');
+  const dur = video.duration;
+  if (!dur || !isFinite(dur)) throw new Error('Video has no valid duration');
 
-  // Output dimensions
+  let sx = 0, sy = 0, sw = vw, sh = vh;
+  if (crop) { sx = crop.x; sy = crop.y; sw = crop.w; sh = crop.h; }
+  if (!sw || !sh) throw new Error('Crop region is zero-sized');
+
   let outW = sw, outH = sh;
-  if (state.exportRes === '1080') { const s = 1080/sh; outW = Math.round(sw*s); outH = 1080; }
-  else if (state.exportRes === '720') { const s = 720/sh; outW = Math.round(sw*s); outH = 720; }
-  // Make even
-  outW = outW % 2 === 0 ? outW : outW + 1;
-  outH = outH % 2 === 0 ? outH : outH + 1;
+  if (state.exportRes === '1080') { const s = 1080 / sh; outW = Math.round(sw * s); outH = 1080; }
+  else if (state.exportRes === '720') { const s = 720 / sh; outW = Math.round(sw * s); outH = 720; }
+  outW += outW % 2; outH += outH % 2;
 
   const offCanvas = document.createElement('canvas');
-  offCanvas.width = outW;
-  offCanvas.height = outH;
+  offCanvas.width = outW; offCanvas.height = outH;
   const octx = offCanvas.getContext('2d');
 
   const fps = 30;
-  const duration = video.duration;
-  const totalFrames = Math.ceil(duration * fps);
+  const totalFrames = Math.ceil(dur * fps);
 
-  // Use MediaRecorder with canvas stream
-  const stream = offCanvas.captureStream(fps);
-
-  // Add audio if not stripping
-  // (Note: adding audio from video to canvas stream requires complex AudioContext routing.
-  //  For the PWA version we always strip audio from the canvas export, which is the safe default.)
-
-  let mimeType = 'video/webm;codecs=vp9';
+  let mimeType = 'video/mp4;codecs=avc1';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
+  if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp9';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8';
   if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
 
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 5000000 });
+  if (!('captureStream' in offCanvas)) throw new Error('captureStream not supported in this browser');
+
+  const stream = offCanvas.captureStream(fps);
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
   const chunks = [];
   recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-  const exportDone = new Promise(resolve => {
-    recorder.onstop = () => resolve();
+  const recordingDone = new Promise((resolve, reject) => {
+    recorder.onstop = resolve;
+    recorder.onerror = e => reject(new Error('MediaRecorder: ' + (e.error?.message || 'unknown error')));
   });
 
   recorder.start();
-  video.currentTime = 0;
+  await seekTo(video, 0);
 
-  // Render frame by frame
   for (let i = 0; i < totalFrames; i++) {
-    video.currentTime = i / fps;
-    await new Promise(r => { video.onseeked = r; setTimeout(r, 100); });
+    await seekTo(video, i / fps);
 
     octx.clearRect(0, 0, outW, outH);
     octx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
 
-    // Draw covers
-    const coverScale = outW / sw;
-    state.covers.forEach(c => {
-      const cx = (c.x - sx) * coverScale;
-      const cy = (c.y - sy) * coverScale;
-      const cs = c.size * coverScale;
+    const cs = outW / sw;
+    covers.forEach(c => {
+      const cx = (c.x - sx) * cs, cy = (c.y - sy) * cs, r = c.size * cs;
       octx.globalAlpha = c.opacity;
       octx.fillStyle = c.color;
-      if (c.shape === 'circle') {
-        octx.beginPath(); octx.arc(cx, cy, cs, 0, Math.PI*2); octx.fill();
-      } else if (c.shape === 'rect') {
-        octx.fillRect(cx-cs, cy-cs, cs*2, cs*2);
-      } else {
-        roundRect(octx, cx-cs, cy-cs, cs*2, cs*2, cs*0.3); octx.fill();
-      }
+      if (c.shape === 'circle') { octx.beginPath(); octx.arc(cx, cy, r, 0, Math.PI * 2); octx.fill(); }
+      else if (c.shape === 'rect') { octx.fillRect(cx - r, cy - r, r * 2, r * 2); }
+      else { roundRect(octx, cx - r, cy - r, r * 2, r * 2, r * 0.3); octx.fill(); }
       octx.globalAlpha = 1;
     });
 
-    const pct = Math.round(((i+1) / totalFrames) * 100);
+    // Map this file's frame progress onto its slice of the overall progress bar
+    const sliceStart = fileIdx / totalFiles, sliceEnd = (fileIdx + 1) / totalFiles;
+    const pct = Math.round((sliceStart + ((i + 1) / totalFrames) * (sliceEnd - sliceStart)) * 100);
     progressFill.style.width = pct + '%';
-    progressText.textContent = `Rendering frame ${i+1} / ${totalFrames} (${pct}%)`;
+    progressText.textContent = `Clip ${fileIdx + 1}/${totalFiles} · frame ${i + 1}/${totalFrames} (${pct}%)`;
 
-    // Yield to keep UI responsive
-    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+    if (i % 10 === 0) await new Promise(r => setTimeout(r, 0)); // yield to UI
   }
 
   recorder.stop();
-  await exportDone;
+  await recordingDone;
+
+  if (video._exportURL) { URL.revokeObjectURL(video._exportURL); video._exportURL = null; }
+
+  if (!chunks.length) throw new Error('MediaRecorder produced no data — format may be unsupported');
 
   const blob = new Blob(chunks, { type: mimeType });
-  const url = URL.createObjectURL(blob);
+  const ext = mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
+  const suffix = totalFiles > 1 ? `_${String(fileIdx + 1).padStart(3, '0')}` : '';
   const a = document.createElement('a');
-  const name = (document.getElementById('renameInput').value || 'ultrasound_clip') + '_clean.webm';
-  a.href = url;
-  a.download = name;
+  a.href = URL.createObjectURL(blob);
+  a.download = `${base}${suffix}_clean.${ext}`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
-
-  progressFill.style.width = '100%';
-  progressText.textContent = 'Export complete — download started';
-  exportBtn.textContent = '✓ Downloaded';
-  exportBtn.disabled = false;
-  exportBtn.onclick = () => { a.click(); };
-}
-
-function processNextBatch() {
-  state.currentFileIndex++;
-  if (state.currentFileIndex < state.files.length) {
-    loadCurrentFile(() => goStep('crop'));
-  }
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
 
 function resetApp() {
   state.files = [];
+  state.fileSettings = [];
   state.currentFileIndex = 0;
   state.crop = null;
   state.covers = [];
-  state.checkedItems = new Set();
   state.isPlaying = false;
   document.getElementById('fileList').classList.add('hidden');
   document.getElementById('importBtnRow').style.display = 'none';
-  document.getElementById('exportProgress').classList.add('hidden');
-  document.getElementById('exportProgressText').classList.add('hidden');
-  document.getElementById('exportBtn').textContent = '⬇ Download Clean MP4';
-  document.getElementById('exportBtn').disabled = false;
-  document.getElementById('exportBtn').onclick = doExport;
+  // Reset export card to ready state
+  document.getElementById('exportReadyState').classList.remove('hidden');
+  document.getElementById('exportProcessingState').classList.add('hidden');
+  document.getElementById('exportDoneState').classList.add('hidden');
+  document.getElementById('exportBackRow').classList.remove('hidden');
+  document.getElementById('exportFill').style.width = '0%';
+  const video = document.getElementById('videoEl');
+  video.oncanplay = null;
+  video.onloadedmetadata = null;
+  video.onerror = null;
   goStep('import');
 }
 
@@ -1178,19 +1278,19 @@ function loadPresets() {
 }
 
 function savePreset() {
-  if (!state.crop) { alert('Set a crop area first.'); return; }
   const name = prompt('Preset name (e.g., "GE Venue Go"):');
   if (!name) return;
-  state.presets.push({ name, crop: {...state.crop}, covers: [...state.covers] });
+  state.presets.push({ name, crop: state.crop ? {...state.crop} : null, covers: state.covers.map(c => ({...c})) });
   try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
   renderPresets();
 }
 
 function applyPreset(idx) {
   const p = state.presets[idx];
-  state.crop = {...p.crop};
+  state.crop = p.crop ? {...p.crop} : null;
   state.covers = p.covers.map(c => ({...c}));
-  drawCropFrame();
+  if (state.currentStep === 'cover') drawCoverFrame();
+  else drawCropFrame();
 }
 
 function deletePreset(idx) {
@@ -1199,12 +1299,70 @@ function deletePreset(idx) {
   renderPresets();
 }
 
+function renamePreset(idx) {
+  const newName = prompt('Rename preset:', state.presets[idx].name);
+  if (!newName || !newName.trim()) return;
+  state.presets[idx].name = newName.trim();
+  try { localStorage.setItem('ultraclean_presets', JSON.stringify(state.presets)); } catch(e) {}
+  renderPresets();
+}
+
 function renderPresets() {
-  const bar = document.getElementById('presetBar');
-  if (!bar) return;
-  bar.innerHTML = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>` +
-    state.presets.map((p, i) => `<button class="preset-chip" onclick="applyPreset(${i})" title="Double-click to delete" ondblclick="event.stopPropagation(); deletePreset(${i})">${p.name}</button>`).join('') +
-    `<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
+  const chips = state.presets.map((p, i) =>
+    `<span class="preset-chip" onclick="applyPreset(${i})" ondblclick="event.stopPropagation();renamePreset(${i})" title="Click to apply · Double-click to rename">${p.name}<span onclick="event.stopPropagation();deletePreset(${i})" style="margin-left:6px;opacity:0.5;font-size:11px;line-height:1;" title="Delete">✕</span></span>`
+  ).join('');
+  const html = `<span style="font-size:12px;color:var(--text-muted);font-weight:500;">Presets:</span>${chips}<button class="preset-chip" onclick="savePreset()">+ Save current</button>`;
+  ['presetBar', 'presetBarCover'].forEach(id => {
+    const bar = document.getElementById(id);
+    if (bar) bar.innerHTML = html;
+  });
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.key) {
+      case ' ':
+        e.preventDefault();
+        if (state.currentStep === 'crop') togglePlay();
+        else if (state.currentStep === 'review') toggleReviewPlay();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        stepFrame(1);
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        stepFrame(-1);
+        break;
+      case 'Escape':
+        if (state.currentStep === 'crop') resetCrop();
+        break;
+      case 'Delete':
+      case 'Backspace':
+        if (state.currentStep === 'cover') { e.preventDefault(); undoCover(); }
+        break;
+      case '1': goStep('import'); break;
+      case '2': if (state.files.length) goStep('crop'); break;
+      case '3': if (state.files.length) goStep('cover'); break;
+      case '4': if (state.files.length) goStep('metadata'); break;
+      case '5': if (state.files.length) goStep('review'); break;
+      case '6': if (state.files.length) goStep('export'); break;
+    }
+  });
+}
+
+function stepFrame(dir) {
+  const video = document.getElementById('videoEl');
+  if (!video.duration) return;
+  video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + dir / 30));
+  setTimeout(() => {
+    if (state.currentStep === 'crop') { drawCropFrame(); updateTimeDisplay(); }
+    else if (state.currentStep === 'review') { drawReviewFrame(); updateReviewTimeDisplay(); }
+  }, 50);
 }
 
 // ═══════════════════════════════════════════
@@ -1592,7 +1750,25 @@ setupGifModal();
 
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showUpdateBanner();
+        }
+      });
+    });
+  }).catch(() => {});
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'updateBanner';
+  banner.style.cssText = 'position:fixed;bottom:16px;right:16px;background:var(--surface-2);border:1px solid var(--accent);color:var(--text);padding:12px 16px;border-radius:var(--radius);z-index:9999;font-size:13px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow);max-width:320px;';
+  banner.innerHTML = `<span style="flex:1;">Update available — refresh for the latest version.</span><button onclick="location.reload()" style="background:var(--accent);color:var(--bg);border:none;padding:5px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;">Refresh</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:0 2px;line-height:1;" title="Dismiss">×</button>`;
+  document.body.appendChild(banner);
 }
 </script>
 
