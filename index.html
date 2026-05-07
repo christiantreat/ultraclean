@@ -198,6 +198,31 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 .text-muted{color:var(–text-muted);}
 .text-accent{color:var(–accent);}
 .mono{font-family:‘JetBrains Mono’,monospace;}
+
+/* ── MP4 → GIF Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;animation:fadeIn 0.2s ease;}
+.modal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);max-width:760px;width:100%;max-height:92vh;overflow-y:auto;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.modal-header h3{font-family:'Fraunces',serif;font-size:22px;color:#fff;margin:0;}
+.modal-close{font-size:18px;color:var(--text-muted);padding:4px 12px;border-radius:var(--radius-sm);transition:background 0.2s,color 0.2s;}
+.modal-close:hover{background:var(--surface-2);color:var(--text);}
+.modal-sub{color:var(--text-dim);font-size:13px;margin-bottom:18px;line-height:1.5;}
+.gif-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center;}
+.gif-controls .ctrl-group{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;}
+.gif-controls .ctrl-group label{font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap;}
+.gif-item{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;}
+.gif-item .bi-name{flex:0 1 200px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gif-item-progress{flex:1;min-width:80px;height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;}
+.gif-item-progress .fill{height:100%;background:var(--accent);width:0%;transition:width 0.2s;}
+.gif-item-status{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);min-width:70px;text-align:right;}
+.gif-item-status.done{color:var(--accent);}
+.gif-item-status.error{color:var(--red);}
+.gif-download-link{font-size:11px;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--accent);border-radius:4px;font-weight:500;}
+.gif-download-link:hover{background:rgba(62,207,142,0.12);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.header-actions{display:flex;align-items:center;gap:12px;}
+.header-btn{font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-weight:500;transition:border 0.2s,background 0.2s;}
+.header-btn:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 
 </head>
@@ -208,7 +233,10 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 
   <header class="app-header">
     <div class="app-logo">Ultra<span>Clean</span></div>
-    <div class="privacy-badge">Processed locally</div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="openGifModal()" title="Batch convert MP4 files to animated GIF">🎞️ MP4 → GIF</button>
+      <div class="privacy-badge">Processed locally</div>
+    </div>
   </header>
 
   <!-- Step Progress Bar -->
@@ -377,6 +405,58 @@ select{font-family:inherit;font-size:13px;color:var(--text);background:var(--sur
 ```
 
   </main>
+
+  <!-- MP4 → GIF Batch Conversion Modal -->
+  <div class="modal-overlay hidden" id="gifModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Batch MP4 → GIF</h3>
+        <button class="modal-close" onclick="closeGifModal()">✕</button>
+      </div>
+      <p class="modal-sub">Convert one or more video files into animated GIFs covering the full duration of each clip. Processed entirely in your browser — files never leave your device.</p>
+      <div class="drop-zone" id="gifDropZone">
+        <div class="icon">🎞️</div>
+        <h3>Drop video files here</h3>
+        <p>or click to browse — supports batch conversion</p>
+        <div class="formats">MP4 · MOV · AVI · WEBM</div>
+        <input type="file" id="gifFileInput" accept="video/*" multiple style="display:none;">
+      </div>
+      <div id="gifFileList" class="batch-list"></div>
+      <div class="gif-controls">
+        <div class="ctrl-group">
+          <label>FPS</label>
+          <select id="gifFps">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="24">24</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Width</label>
+          <select id="gifWidth">
+            <option value="original">Original</option>
+            <option value="640">640 px</option>
+            <option value="480" selected>480 px</option>
+            <option value="320">320 px</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Loop</label>
+          <select id="gifLoop">
+            <option value="0" selected>Forever</option>
+            <option value="1">Once</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:10px;">Tip: lower FPS / smaller width = faster encode and smaller files. The full clip duration is preserved.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeGifModal()">Close</button>
+        <button class="btn btn-primary" id="gifConvertBtn" onclick="convertAllToGif()">Convert all →</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1145,8 +1225,370 @@ function touchToMouse(e) {
   return t ? { clientX: t.clientX, clientY: t.clientY, preventDefault: ()=>{} } : e;
 }
 
+// ═══════════════════════════════════════════
+// MP4 → GIF Batch Conversion (independent feature)
+// ═══════════════════════════════════════════
+const gifState = {
+  items: [],       // [{file, status, progress, url}]
+  converting: false,
+};
+
+function openGifModal() {
+  document.getElementById('gifModal').classList.remove('hidden');
+}
+
+function closeGifModal() {
+  if (gifState.converting) {
+    if (!confirm('A conversion is in progress. Closing will not cancel it but the modal will reopen with results. Close anyway?')) return;
+  }
+  document.getElementById('gifModal').classList.add('hidden');
+}
+
+function setupGifModal() {
+  const dz = document.getElementById('gifDropZone');
+  const fi = document.getElementById('gifFileInput');
+  if (!dz || !fi) return;
+  dz.addEventListener('click', () => fi.click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    addGifFiles(e.dataTransfer.files);
+  });
+  fi.addEventListener('change', e => { addGifFiles(e.target.files); fi.value = ''; });
+}
+
+function addGifFiles(fileList) {
+  const newOnes = Array.from(fileList).filter(f => f.type.startsWith('video/'));
+  if (!newOnes.length) return;
+  for (const f of newOnes) {
+    gifState.items.push({ file: f, status: 'queued', progress: 0, url: null });
+  }
+  renderGifFileList();
+}
+
+function removeGifItem(idx) {
+  if (gifState.items[idx] && gifState.items[idx].status === 'processing') return;
+  if (gifState.items[idx] && gifState.items[idx].url) URL.revokeObjectURL(gifState.items[idx].url);
+  gifState.items.splice(idx, 1);
+  renderGifFileList();
+}
+
+function renderGifFileList() {
+  const el = document.getElementById('gifFileList');
+  if (!gifState.items.length) { el.innerHTML = ''; return; }
+  el.innerHTML = gifState.items.map((it, i) => {
+    const statusCls = it.status === 'done' ? 'done' : it.status.startsWith('error') ? 'error' : '';
+    const baseName = it.file.name.replace(/\.[^.]+$/, '') + '.gif';
+    return `
+      <div class="gif-item">
+        <span style="font-size:18px;">🎬</span>
+        <span class="bi-name" title="${it.file.name}">${it.file.name}</span>
+        <div class="gif-item-progress"><div class="fill" style="width:${it.progress}%;"></div></div>
+        <span class="gif-item-status ${statusCls}">${it.status}</span>
+        ${it.url ? `<a class="gif-download-link" href="${it.url}" download="${baseName}">Download</a>` : ''}
+        ${it.status === 'queued' || it.status === 'done' || it.status.startsWith('error') ? `<button class="bi-remove" onclick="removeGifItem(${i})" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:14px;">✕</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function convertAllToGif() {
+  if (gifState.converting) return;
+  const queued = gifState.items.filter(it => it.status === 'queued');
+  if (!queued.length) { alert('Add at least one video file.'); return; }
+
+  gifState.converting = true;
+  const btn = document.getElementById('gifConvertBtn');
+  btn.disabled = true;
+  btn.textContent = 'Converting…';
+
+  const fps = parseInt(document.getElementById('gifFps').value, 10);
+  const widthOpt = document.getElementById('gifWidth').value;
+  const loop = parseInt(document.getElementById('gifLoop').value, 10);
+
+  for (const item of gifState.items) {
+    if (item.status !== 'queued') continue;
+    item.status = 'processing';
+    item.progress = 0;
+    renderGifFileList();
+    try {
+      const blob = await convertVideoToGif(item.file, { fps, widthOpt, loop }, p => {
+        item.progress = p;
+        renderGifFileList();
+      });
+      item.url = URL.createObjectURL(blob);
+      item.status = 'done';
+      item.progress = 100;
+    } catch (err) {
+      console.error('GIF conversion failed:', err);
+      item.status = 'error: ' + (err.message || 'failed');
+    }
+    renderGifFileList();
+    await new Promise(r => setTimeout(r, 0));
+  }
+
+  gifState.converting = false;
+  btn.disabled = false;
+  btn.textContent = 'Convert all →';
+}
+
+async function convertVideoToGif(file, opts, onProgress) {
+  const video = document.createElement('video');
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  const objUrl = URL.createObjectURL(file);
+  video.src = objUrl;
+
+  await new Promise((resolve, reject) => {
+    video.onloadedmetadata = () => resolve();
+    video.onerror = () => reject(new Error('failed to load video'));
+  });
+  // Wait until we can actually seek and read frames
+  await new Promise(resolve => {
+    if (video.readyState >= 2) return resolve();
+    video.oncanplay = () => resolve();
+    setTimeout(resolve, 1500);
+  });
+
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) { URL.revokeObjectURL(objUrl); throw new Error('invalid video dimensions'); }
+
+  let outW = vw, outH = vh;
+  if (opts.widthOpt !== 'original') {
+    const tw = parseInt(opts.widthOpt, 10);
+    if (tw < vw) {
+      outW = tw;
+      outH = Math.round(vh * (tw / vw));
+    }
+  }
+  // GIF works best with even dims; not strictly required, but keep things tidy
+  if (outW < 2) outW = 2;
+  if (outH < 2) outH = 2;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  const duration = isFinite(video.duration) ? video.duration : 0;
+  if (duration <= 0) { URL.revokeObjectURL(objUrl); throw new Error('zero-length video'); }
+
+  const fps = Math.max(1, Math.min(30, opts.fps));
+  const totalFrames = Math.max(1, Math.floor(duration * fps));
+  const frameDelayCs = Math.max(2, Math.round(100 / fps)); // GIF delay is in 1/100 sec; min 2cs (~50fps cap)
+
+  const enc = new GifEncoder(outW, outH, { loop: opts.loop, delayCs: frameDelayCs });
+  enc.start();
+
+  for (let f = 0; f < totalFrames; f++) {
+    const t = Math.min(duration - 0.001, f / fps);
+    await seekTo(video, t);
+    ctx.drawImage(video, 0, 0, outW, outH);
+    const imgData = ctx.getImageData(0, 0, outW, outH);
+    enc.addFrame(imgData.data);
+    onProgress(Math.round(((f + 1) / totalFrames) * 100));
+    if ((f & 1) === 0) await new Promise(r => setTimeout(r, 0));
+  }
+
+  const blob = enc.finish();
+  URL.revokeObjectURL(objUrl);
+  return blob;
+}
+
+function seekTo(video, t) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (done) return; done = true; video.removeEventListener('seeked', finish); resolve(); };
+    video.addEventListener('seeked', finish);
+    try { video.currentTime = t; } catch(e) { finish(); return; }
+    setTimeout(finish, 800); // safety
+  });
+}
+
+// ─── Inline GIF89a encoder (median-cut quantize + LZW) ───
+class GifEncoder {
+  constructor(width, height, opts) {
+    this.width = width;
+    this.height = height;
+    this.delayCs = (opts && opts.delayCs) || 10;
+    this.loop = opts && typeof opts.loop === 'number' ? opts.loop : 0;
+    this.bytes = [];
+  }
+  _b(v) { this.bytes.push(v & 0xff); }
+  _w(v) { this.bytes.push(v & 0xff, (v >> 8) & 0xff); }
+  _s(s) { for (let i = 0; i < s.length; i++) this.bytes.push(s.charCodeAt(i)); }
+  start() {
+    this._s('GIF89a');
+    this._w(this.width);
+    this._w(this.height);
+    this._b(0); this._b(0); this._b(0); // no global palette
+    // NETSCAPE2.0 loop extension (loop forever or N times)
+    this._b(0x21); this._b(0xff); this._b(0x0b);
+    this._s('NETSCAPE2.0');
+    this._b(0x03); this._b(0x01);
+    this._w(this.loop); this._b(0x00);
+  }
+  addFrame(rgba) {
+    const { pal, idx } = quantizeMedianCut(rgba, 256);
+    // Graphic Control Extension (delay)
+    this._b(0x21); this._b(0xf9); this._b(0x04);
+    this._b(0x00);
+    this._w(this.delayCs);
+    this._b(0); this._b(0);
+    // Image Descriptor
+    this._b(0x2c);
+    this._w(0); this._w(0);
+    this._w(this.width); this._w(this.height);
+    this._b(0x87); // local color table flag, size code 7 = 256 entries
+    for (let i = 0; i < 256; i++) {
+      const c = pal[i] || [0,0,0];
+      this._b(c[0]); this._b(c[1]); this._b(c[2]);
+    }
+    // LZW image data
+    this._b(8); // min code size
+    const lzw = lzwEncode(idx, 8);
+    for (let i = 0; i < lzw.length; i += 255) {
+      const len = Math.min(255, lzw.length - i);
+      this._b(len);
+      for (let j = 0; j < len; j++) this._b(lzw[i + j]);
+    }
+    this._b(0); // block terminator
+  }
+  finish() {
+    this._b(0x3b);
+    return new Blob([new Uint8Array(this.bytes)], { type: 'image/gif' });
+  }
+}
+
+function quantizeMedianCut(rgba, maxColors) {
+  const totalPx = rgba.length >> 2;
+  // Sample for histogram (cap to ~10k samples for speed)
+  const sampleStep = Math.max(1, Math.floor(totalPx / 10000));
+  const samples = [];
+  for (let i = 0; i < totalPx; i += sampleStep) {
+    const o = i << 2;
+    samples.push([rgba[o], rgba[o+1], rgba[o+2]]);
+  }
+  if (samples.length === 0) samples.push([0,0,0]);
+
+  const buckets = [samples];
+  while (buckets.length < maxColors) {
+    let bestIdx = -1, bestRange = 0, bestCh = 0;
+    for (let b = 0; b < buckets.length; b++) {
+      const bk = buckets[b];
+      if (bk.length < 2) continue;
+      let mn = [255,255,255], mx = [0,0,0];
+      for (let k = 0; k < bk.length; k++) {
+        const p = bk[k];
+        if (p[0] < mn[0]) mn[0] = p[0]; if (p[0] > mx[0]) mx[0] = p[0];
+        if (p[1] < mn[1]) mn[1] = p[1]; if (p[1] > mx[1]) mx[1] = p[1];
+        if (p[2] < mn[2]) mn[2] = p[2]; if (p[2] > mx[2]) mx[2] = p[2];
+      }
+      // Weight green a bit more (perceptual-ish)
+      const ranges = [mx[0]-mn[0], (mx[1]-mn[1]) * 1.2, mx[2]-mn[2]];
+      for (let c = 0; c < 3; c++) {
+        if (ranges[c] > bestRange) { bestRange = ranges[c]; bestIdx = b; bestCh = c; }
+      }
+    }
+    if (bestIdx < 0) break;
+    const bk = buckets[bestIdx];
+    bk.sort((a,b) => a[bestCh] - b[bestCh]);
+    const mid = bk.length >> 1;
+    buckets[bestIdx] = bk.slice(0, mid);
+    buckets.push(bk.slice(mid));
+  }
+
+  const pal = buckets.map(bk => {
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < bk.length; i++) { r += bk[i][0]; g += bk[i][1]; b += bk[i][2]; }
+    const n = bk.length || 1;
+    return [Math.round(r/n), Math.round(g/n), Math.round(b/n)];
+  });
+
+  // Build a 5-bit-per-channel cache for nearest-color lookups
+  const cache = new Int16Array(32768);
+  for (let i = 0; i < cache.length; i++) cache[i] = -1;
+  const palLen = pal.length;
+  function nearest(r, g, b) {
+    const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+    const cached = cache[key];
+    if (cached >= 0) return cached;
+    let bd = Infinity, bi = 0;
+    for (let p = 0; p < palLen; p++) {
+      const dr = r - pal[p][0], dg = g - pal[p][1], db = b - pal[p][2];
+      const d = dr*dr + dg*dg + db*db;
+      if (d < bd) { bd = d; bi = p; if (d === 0) break; }
+    }
+    cache[key] = bi;
+    return bi;
+  }
+
+  const idx = new Uint8Array(totalPx);
+  for (let i = 0; i < totalPx; i++) {
+    const o = i << 2;
+    idx[i] = nearest(rgba[o], rgba[o+1], rgba[o+2]);
+  }
+  return { pal, idx };
+}
+
+function lzwEncode(indices, minCodeSize) {
+  const clearCode = 1 << minCodeSize;
+  const eoiCode = clearCode + 1;
+  let codeSize = minCodeSize + 1;
+  let nextCode = eoiCode + 1;
+  const dict = new Map();
+  const out = [];
+  let buf = 0, bits = 0;
+
+  function emit(code) {
+    buf |= code << bits;
+    bits += codeSize;
+    while (bits >= 8) {
+      out.push(buf & 0xff);
+      buf >>>= 8;
+      bits -= 8;
+    }
+  }
+
+  if (!indices.length) {
+    emit(clearCode); emit(eoiCode);
+    if (bits > 0) out.push(buf & 0xff);
+    return out;
+  }
+
+  emit(clearCode);
+  let cur = indices[0];
+  for (let i = 1; i < indices.length; i++) {
+    const next = indices[i];
+    const key = cur * 256 + next;
+    if (dict.has(key)) {
+      cur = dict.get(key);
+    } else {
+      emit(cur);
+      if (nextCode < 4096) {
+        dict.set(key, nextCode);
+        nextCode++;
+        if (nextCode === (1 << codeSize) && codeSize < 12) codeSize++;
+      } else {
+        emit(clearCode);
+        dict.clear();
+        codeSize = minCodeSize + 1;
+        nextCode = eoiCode + 1;
+      }
+      cur = next;
+    }
+  }
+  emit(cur);
+  emit(eoiCode);
+  if (bits > 0) out.push(buf & 0xff);
+  return out;
+}
+
 // Init on load
 init();
+setupGifModal();
 
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
